@@ -40,6 +40,19 @@ export interface SimulationInput {
   weather: WeatherType;
 }
 
+export interface DistributionBucket {
+  value: number;
+  count: number;
+  pct: number;
+}
+
+export interface StatDistributions {
+  goals: DistributionBucket[];
+  yellowCards: DistributionBucket[];
+  corners: DistributionBucket[];
+  shotsOnTarget: DistributionBucket[];
+}
+
 export interface SimulationResult {
   homeTeam: TeamSimResult;
   awayTeam: TeamSimResult;
@@ -53,6 +66,7 @@ export interface SimulationResult {
   betRecommendations: BetRecommendation[];
   formationAdvantage: FormationAdvantage;
   simulationIterations: number;
+  distributions: StatDistributions;
 }
 
 export interface TeamSimResult {
@@ -197,8 +211,13 @@ export function runMonteCarlo(input: SimulationInput): SimulationResult {
   let totalHomeYellow = 0, totalAwayYellow = 0;
   let totalHomeRed = 0, totalAwayRed = 0;
   let totalHomeCorners = 0, totalAwayCorners = 0;
-  // Corners market accumulators
   let cornersOver85 = 0, cornersOver105 = 0;
+
+  // Distribution histograms (value → count)
+  const goalsDistMap: Map<number, number> = new Map();
+  const yellowDistMap: Map<number, number> = new Map();
+  const cornersDistMap: Map<number, number> = new Map();
+  const shotsDistMap: Map<number, number> = new Map();
 
   const scorelineMap: Map<string, number> = new Map();
 
@@ -241,6 +260,19 @@ export function runMonteCarlo(input: SimulationInput): SimulationResult {
     if (totalCorners > 8.5) cornersOver85++;
     if (totalCorners > 10.5) cornersOver105++;
 
+    // Track distributions
+    const totalGoalsBucket = Math.min(homeGoals + awayGoals, 10);
+    goalsDistMap.set(totalGoalsBucket, (goalsDistMap.get(totalGoalsBucket) ?? 0) + 1);
+
+    const totalYellowBucket = Math.min(homeYellow + awayYellow, 10);
+    yellowDistMap.set(totalYellowBucket, (yellowDistMap.get(totalYellowBucket) ?? 0) + 1);
+
+    const totalCornersBucket = Math.min(Math.round(totalCorners), 18);
+    cornersDistMap.set(totalCornersBucket, (cornersDistMap.get(totalCornersBucket) ?? 0) + 1);
+
+    const totalShotsBucket = Math.min(Math.round(homeShots + awayShots), 18);
+    shotsDistMap.set(totalShotsBucket, (shotsDistMap.get(totalShotsBucket) ?? 0) + 1);
+
     const hg = Math.min(homeGoals, 8);
     const ag = Math.min(awayGoals, 8);
     const key = `${hg}-${ag}`;
@@ -270,6 +302,17 @@ export function runMonteCarlo(input: SimulationInput): SimulationResult {
   const totalShots = avgHomeShots + avgAwayShots;
   const cornersO85Rate = cornersOver85 / ITERATIONS;
   const cornersO105Rate = cornersOver105 / ITERATIONS;
+
+  const buildDist = (map: Map<number, number>, maxVal: number): DistributionBucket[] => {
+    const result: DistributionBucket[] = [];
+    for (let v = 0; v <= maxVal; v++) {
+      const count = map.get(v) ?? 0;
+      if (count > 0 || v <= maxVal) {
+        result.push({ value: v, count, pct: parseFloat(((count / ITERATIONS) * 100).toFixed(2)) });
+      }
+    }
+    return result.filter(b => b.count > 0);
+  };
 
   const topScorelines = Array.from(scorelineMap.entries())
     .map(([key, count]) => {
@@ -329,6 +372,12 @@ export function runMonteCarlo(input: SimulationInput): SimulationResult {
       description: formationDescription,
     },
     simulationIterations: ITERATIONS,
+    distributions: {
+      goals: buildDist(goalsDistMap, 10),
+      yellowCards: buildDist(yellowDistMap, 10),
+      corners: buildDist(cornersDistMap, 18),
+      shotsOnTarget: buildDist(shotsDistMap, 18),
+    },
   };
 }
 

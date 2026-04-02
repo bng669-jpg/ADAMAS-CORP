@@ -202,7 +202,7 @@ export const useRunSimulation = <
 };
 
 /**
- * Returns all 15 top football formations with their effectiveness data
+ * Returns all 13 top football formations with their effectiveness data
  * @summary Get all formations with matchmaking data
  */
 export const getGetFormationsUrl = () => {

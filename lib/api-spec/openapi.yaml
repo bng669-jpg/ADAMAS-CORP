@@ -55,7 +55,7 @@ paths:
       operationId: getFormations
       tags: [formations]
       summary: Get all formations with matchmaking data
-      description: Returns all 15 top football formations with their effectiveness data
+      description: Returns all 13 top football formations with their effectiveness data
       responses:
         "200":
           description: Formations list
@@ -259,6 +259,52 @@ components:
         avgCorners:
           type: number
 
+    DistributionBucket:
+      type: object
+      required:
+        - value
+        - count
+        - pct
+      properties:
+        value:
+          type: integer
+          description: The stat value (e.g. 2 goals, 3 yellow cards)
+        count:
+          type: integer
+          description: Number of simulations that produced this value (out of 10000)
+        pct:
+          type: number
+          description: Percentage of simulations with this value
+
+    StatDistributions:
+      type: object
+      required:
+        - goals
+        - yellowCards
+        - corners
+        - shotsOnTarget
+      properties:
+        goals:
+          type: array
+          items:
+            $ref: "#/components/schemas/DistributionBucket"
+          description: Distribution of total goals across simulations
+        yellowCards:
+          type: array
+          items:
+            $ref: "#/components/schemas/DistributionBucket"
+          description: Distribution of total yellow cards across simulations
+        corners:
+          type: array
+          items:
+            $ref: "#/components/schemas/DistributionBucket"
+          description: Distribution of total corners across simulations
+        shotsOnTarget:
+          type: array
+          items:
+            $ref: "#/components/schemas/DistributionBucket"
+          description: Distribution of total shots on target across simulations
+
     BetRecommendation:
       type: object
       required:
@@ -295,6 +341,7 @@ components:
         - betRecommendations
         - formationAdvantage
         - simulationIterations
+        - distributions
       properties:
         homeTeam:
           $ref: "#/components/schemas/TeamSimResult"
@@ -344,6 +391,8 @@ components:
           required: [homeAdvantage, awayAdvantage, description]
         simulationIterations:
           type: integer
+        distributions:
+          $ref: "#/components/schemas/StatDistributions"
 
     Formation:
       type: object
@@ -480,6 +529,7 @@ components:
           type: string
         notes:
           type: string
+          nullable: true
         createdAt:
           type: string
 
@@ -534,6 +584,24 @@ components:
           type: string
         notes:
           type: string
+
+    GetBettingHistoryResponse:
+      type: object
+      required:
+        - entries
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/HistoryEntry"
+
+    DeleteBettingHistoryParams:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: integer
 
     DeleteResult:
       type: object

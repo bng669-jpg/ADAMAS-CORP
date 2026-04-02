@@ -18,6 +18,17 @@ router.get("/history", async (req, res): Promise<void> => {
 
   const mapped = entries.map((e) => ({
     ...e,
+    notes: e.notes ?? undefined,
+    homeFormation: e.homeFormation ?? undefined,
+    awayFormation: e.awayFormation ?? undefined,
+    homeColor: e.homeColor ?? undefined,
+    awayColor: e.awayColor ?? undefined,
+    expectedGoals: e.expectedGoals ?? undefined,
+    betRecommendation: e.betRecommendation ?? undefined,
+    betMarket: e.betMarket ?? undefined,
+    betConfidence: e.betConfidence ?? undefined,
+    weather: e.weather ?? undefined,
+    referee: e.referee ?? undefined,
     createdAt: e.createdAt.toISOString(),
   }));
 
@@ -41,6 +52,7 @@ router.post("/history", async (req, res): Promise<void> => {
 
   res.status(201).json({
     ...entry,
+    notes: entry.notes ?? undefined,
     createdAt: entry.createdAt.toISOString(),
   });
 });

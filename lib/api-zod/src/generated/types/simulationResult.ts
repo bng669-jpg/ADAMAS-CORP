@@ -9,6 +9,7 @@ import type { BetRecommendation } from "./betRecommendation";
 import type { ScorelineProbability } from "./scorelineProbability";
 import type { SimulationResultFormationAdvantage } from "./simulationResultFormationAdvantage";
 import type { SimulationResultGoalsMarket } from "./simulationResultGoalsMarket";
+import type { StatDistributions } from "./statDistributions";
 import type { TeamSimResult } from "./teamSimResult";
 
 export interface SimulationResult {
@@ -24,4 +25,5 @@ export interface SimulationResult {
   betRecommendations: BetRecommendation[];
   formationAdvantage: SimulationResultFormationAdvantage;
   simulationIterations: number;
+  distributions: StatDistributions;
 }

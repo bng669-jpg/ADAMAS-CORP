@@ -8,12 +8,15 @@
 
 export * from "./betRecommendation";
 export * from "./betRecommendationRisk";
+export * from "./deleteBettingHistoryParams";
 export * from "./deleteResult";
+export * from "./distributionBucket";
 export * from "./formation";
 export * from "./formationMatchup";
 export * from "./formationMatchupInput";
 export * from "./formationMatchups";
 export * from "./formationsResponse";
+export * from "./getBettingHistoryResponse";
 export * from "./healthStatus";
 export * from "./historyEntry";
 export * from "./historyResponse";
@@ -26,6 +29,7 @@ export * from "./simulationInputWeather";
 export * from "./simulationResult";
 export * from "./simulationResultFormationAdvantage";
 export * from "./simulationResultGoalsMarket";
+export * from "./statDistributions";
 export * from "./teamInput";
 export * from "./teamInputColor";
 export * from "./teamSimResult";

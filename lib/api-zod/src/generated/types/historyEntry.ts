@@ -23,6 +23,6 @@ export interface HistoryEntry {
   betConfidence?: number;
   weather?: string;
   referee?: string;
-  notes?: string;
+  notes?: string | null;
   createdAt: string;
 }

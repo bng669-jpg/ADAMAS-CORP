@@ -113,10 +113,80 @@ export const RunSimulationResponse = zod.object({
     description: zod.string(),
   }),
   simulationIterations: zod.number(),
+  distributions: zod.object({
+    goals: zod
+      .array(
+        zod.object({
+          value: zod
+            .number()
+            .describe("The stat value (e.g. 2 goals, 3 yellow cards)"),
+          count: zod
+            .number()
+            .describe(
+              "Number of simulations that produced this value (out of 10000)",
+            ),
+          pct: zod
+            .number()
+            .describe("Percentage of simulations with this value"),
+        }),
+      )
+      .describe("Distribution of total goals across simulations"),
+    yellowCards: zod
+      .array(
+        zod.object({
+          value: zod
+            .number()
+            .describe("The stat value (e.g. 2 goals, 3 yellow cards)"),
+          count: zod
+            .number()
+            .describe(
+              "Number of simulations that produced this value (out of 10000)",
+            ),
+          pct: zod
+            .number()
+            .describe("Percentage of simulations with this value"),
+        }),
+      )
+      .describe("Distribution of total yellow cards across simulations"),
+    corners: zod
+      .array(
+        zod.object({
+          value: zod
+            .number()
+            .describe("The stat value (e.g. 2 goals, 3 yellow cards)"),
+          count: zod
+            .number()
+            .describe(
+              "Number of simulations that produced this value (out of 10000)",
+            ),
+          pct: zod
+            .number()
+            .describe("Percentage of simulations with this value"),
+        }),
+      )
+      .describe("Distribution of total corners across simulations"),
+    shotsOnTarget: zod
+      .array(
+        zod.object({
+          value: zod
+            .number()
+            .describe("The stat value (e.g. 2 goals, 3 yellow cards)"),
+          count: zod
+            .number()
+            .describe(
+              "Number of simulations that produced this value (out of 10000)",
+            ),
+          pct: zod
+            .number()
+            .describe("Percentage of simulations with this value"),
+        }),
+      )
+      .describe("Distribution of total shots on target across simulations"),
+  }),
 });
 
 /**
- * Returns all 15 top football formations with their effectiveness data
+ * Returns all 13 top football formations with their effectiveness data
  * @summary Get all formations with matchmaking data
  */
 export const GetFormationsResponse = zod.object({
@@ -180,7 +250,7 @@ export const GetBettingHistoryResponse = zod.object({
       betConfidence: zod.number().optional(),
       weather: zod.string().optional(),
       referee: zod.string().optional(),
-      notes: zod.string().optional(),
+      notes: zod.string().nullish(),
       createdAt: zod.string(),
     }),
   ),

@@ -5,8 +5,15 @@ import { useToast } from "@/hooks/use-toast";
 import { useLang } from "@/lib/lang";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
+import {
+  PieChart, Pie, Cell, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, Tooltip, Cell as BarCell,
+  ReferenceLine,
+} from "recharts";
 import { ArrowLeft, Save, Target, Crosshair, Triangle, CircleDot, Goal } from "lucide-react";
+import type { SimulationResult } from "@workspace/api-client-react";
+
+type DistBucket = { value: number; count: number; pct: number };
 
 export default function Results() {
   const [, setLocation] = useLocation();
@@ -70,7 +77,6 @@ export default function Results() {
     high: t.results.high,
   };
 
-  // The 4 categorized bets from the backend (GOALS, YELLOW CARDS, CORNERS, SHOTS ON TARGET)
   const bets = result.betRecommendations;
   const goalsBet = bets.find(b => b.market === "GOALS");
   const cardsBet = bets.find(b => b.market === "YELLOW CARDS");
@@ -103,6 +109,73 @@ export default function Results() {
       </div>
     </div>
   );
+
+  // Gaussian distribution chart component
+  const DistributionChart = ({
+    data,
+    avgValue,
+    color,
+    unitLabel,
+    statLabel,
+  }: {
+    data: DistBucket[];
+    avgValue: number;
+    color: string;
+    unitLabel: string;
+    statLabel: string;
+  }) => {
+    const maxPct = Math.max(...data.map(d => d.pct), 1);
+    const avgRounded = Math.round(avgValue);
+
+    const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: DistBucket }> }) => {
+      if (!active || !payload?.length) return null;
+      const d = payload[0].payload;
+      return (
+        <div className="bg-card border border-border/80 rounded px-3 py-2 text-xs font-mono shadow-lg">
+          <div className="text-foreground font-bold mb-1">
+            {d.value} {unitLabel}
+          </div>
+          <div className="text-primary">{d.pct.toFixed(1)}% — {d.count.toLocaleString()} {t.results.simLabel}</div>
+        </div>
+      );
+    };
+
+    return (
+      <Card className="bg-card/50 border-border/50 glow-border">
+        <CardHeader className="pb-1 pt-4 px-4">
+          <CardTitle className="text-xs tracking-widest text-muted-foreground">{statLabel}</CardTitle>
+          <div className="text-2xl font-bold text-primary font-mono mt-1 glow-text">{avgValue.toFixed(1)}</div>
+        </CardHeader>
+        <CardContent className="px-2 pb-3">
+          <div className="h-28">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data} margin={{ top: 4, right: 4, left: -20, bottom: 0 }} barCategoryGap="10%">
+                <XAxis
+                  dataKey="value"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10, fontFamily: "monospace" }}
+                />
+                <YAxis hide domain={[0, maxPct * 1.15]} />
+                <ReferenceLine x={avgRounded} stroke={color} strokeDasharray="3 3" strokeOpacity={0.6} />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
+                <Bar dataKey="pct" radius={[2, 2, 0, 0]}>
+                  {data.map((entry) => (
+                    <BarCell
+                      key={entry.value}
+                      fill={entry.value === avgRounded ? color : `${color}88`}
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const dist = result.distributions;
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 pb-12">
@@ -140,7 +213,7 @@ export default function Results() {
         </div>
       </div>
 
-      {/* Win Probability + Expected Goals */}
+      {/* Win Probability + Stats Summary */}
       <div className="grid md:grid-cols-2 gap-8">
         {/* Win Probability */}
         <Card className="bg-card/50 border-border/50 glow-border">
@@ -171,9 +244,9 @@ export default function Results() {
           </CardContent>
         </Card>
 
-        {/* Goals Probable */}
+        {/* Stats Summary */}
         <Card className="bg-card/50 border-border/50 glow-border">
-          <CardHeader><CardTitle className="tracking-widest text-sm">{t.results.expectedGoals}</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="tracking-widest text-sm">{t.results.statsTitle}</CardTitle></CardHeader>
           <CardContent className="space-y-5 pt-2">
             <StatRow
               label={t.results.expectedGoals}
@@ -203,9 +276,48 @@ export default function Results() {
         </Card>
       </div>
 
-      {/* Probable Scorelines + Goals Market */}
+      {/* GAUSSIAN DISTRIBUTIONS — 4 charts */}
+      {dist && (
+        <div>
+          <div className="border-b border-border/50 pb-3 mb-5">
+            <h2 className="text-xl font-bold tracking-widest">{t.results.gaussTitle}</h2>
+            <p className="text-xs text-muted-foreground font-mono mt-1">{t.results.gaussSubtitle}</p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <DistributionChart
+              data={dist.goals}
+              avgValue={result.expectedTotalGoals}
+              color="hsl(109, 100%, 54%)"
+              unitLabel={t.results.gaussGoalsUnit}
+              statLabel={t.results.gaussGoalsLabel}
+            />
+            <DistributionChart
+              data={dist.yellowCards}
+              avgValue={result.totalAvgYellowCards}
+              color="hsl(45, 90%, 55%)"
+              unitLabel={t.results.gaussYellowUnit}
+              statLabel={t.results.gaussYellowLabel}
+            />
+            <DistributionChart
+              data={dist.corners}
+              avgValue={result.totalAvgCorners}
+              color="hsl(200, 90%, 60%)"
+              unitLabel={t.results.gaussCornersUnit}
+              statLabel={t.results.gaussCornersLabel}
+            />
+            <DistributionChart
+              data={dist.shotsOnTarget}
+              avgValue={result.combinedShotsOnTarget}
+              color="hsl(280, 80%, 65%)"
+              unitLabel={t.results.gaussShotsUnit}
+              statLabel={t.results.gaussShotsLabel}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Scorelines + Goals Market */}
       <div className="grid md:grid-cols-2 gap-8">
-        {/* Probable Scorelines */}
         <Card className="bg-card/50 border-border/50 glow-border">
           <CardHeader><CardTitle className="tracking-widest text-sm">{t.results.probableScorelines}</CardTitle></CardHeader>
           <CardContent>
@@ -225,15 +337,13 @@ export default function Results() {
                     formatter={(val: number) => [`${val.toFixed(1)}%`, t.results.probability]}
                     contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', fontFamily: 'monospace' }}
                   />
-                  <Bar dataKey="prob" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]}>
-                  </Bar>
+                  <Bar dataKey="prob" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
 
-        {/* Goals Market */}
         <Card className="bg-card/50 border-border/50 glow-border">
           <CardHeader><CardTitle className="tracking-widest text-sm">{t.results.goalsMarket}</CardTitle></CardHeader>
           <CardContent className="space-y-3 pt-2">
@@ -254,14 +364,14 @@ export default function Results() {
                 </div>
               </div>
             ))}
-            <div className="pt-2 text-xs text-muted-foreground font-mono border-t border-border/30">
+            <div className="pt-2 text-xs text-muted-foreground font-mono border-t border-border/30 leading-relaxed">
               {t.results.formationAdv}: {result.formationAdvantage.description}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* 4 Bet Recommendations — one per category */}
+      {/* 4 Bet Recommendations */}
       <div>
         <div className="flex items-center gap-2 border-b border-border/50 pb-3 mb-6">
           <Target className="w-5 h-5 text-primary" />

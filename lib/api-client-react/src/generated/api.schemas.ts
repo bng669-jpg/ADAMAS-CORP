@@ -88,6 +88,26 @@ export interface TeamSimResult {
   avgCorners: number;
 }
 
+export interface DistributionBucket {
+  /** The stat value (e.g. 2 goals, 3 yellow cards) */
+  value: number;
+  /** Number of simulations that produced this value (out of 10000) */
+  count: number;
+  /** Percentage of simulations with this value */
+  pct: number;
+}
+
+export interface StatDistributions {
+  /** Distribution of total goals across simulations */
+  goals: DistributionBucket[];
+  /** Distribution of total yellow cards across simulations */
+  yellowCards: DistributionBucket[];
+  /** Distribution of total corners across simulations */
+  corners: DistributionBucket[];
+  /** Distribution of total shots on target across simulations */
+  shotsOnTarget: DistributionBucket[];
+}
+
 export type BetRecommendationRisk =
   (typeof BetRecommendationRisk)[keyof typeof BetRecommendationRisk];
 
@@ -132,6 +152,7 @@ export interface SimulationResult {
   betRecommendations: BetRecommendation[];
   formationAdvantage: SimulationResultFormationAdvantage;
   simulationIterations: number;
+  distributions: StatDistributions;
 }
 
 /**
@@ -188,7 +209,7 @@ export interface HistoryEntry {
   betConfidence?: number;
   weather?: string;
   referee?: string;
-  notes?: string;
+  notes?: string | null;
   createdAt: string;
 }
 
@@ -213,6 +234,14 @@ export interface SaveHistoryInput {
   weather?: string;
   referee?: string;
   notes?: string;
+}
+
+export interface GetBettingHistoryResponse {
+  entries: HistoryEntry[];
+}
+
+export interface DeleteBettingHistoryParams {
+  id: number;
 }
 
 export interface DeleteResult {
