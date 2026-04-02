@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useRunSimulation, SimulationInput } from "@workspace/api-client-react";
 import { useSimulationStore } from "@/lib/simulation-store";
+import { useLang } from "@/lib/lang";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -39,10 +40,11 @@ const formSchema = z.object({
   weather: z.enum(["clear", "rain", "wind", "snow", "extreme_heat"]),
 });
 
+// 13 formations (3-6-1 and 4-6-0 removed)
 const FORMATIONS = [
-  "4-3-3", "4-4-2", "4-2-3-1", "3-5-2", "3-4-3", 
-  "5-3-2", "4-1-4-1", "4-5-1", "4-3-2-1", "3-4-2-1", 
-  "4-4-1-1", "4-3-1-2", "5-4-1", "3-6-1", "4-6-0"
+  "4-3-3", "4-4-2", "4-2-3-1", "3-5-2", "3-4-3",
+  "5-3-2", "4-1-4-1", "4-5-1", "4-3-2-1", "3-4-2-1",
+  "4-4-1-1", "4-3-1-2", "5-4-1"
 ];
 
 const WEATHER_ICONS = {
@@ -73,6 +75,7 @@ export default function Home() {
   const { setSimulationData } = useSimulationStore();
   const runSim = useRunSimulation();
   const [isSimulating, setIsSimulating] = useState(false);
+  const { t } = useLang();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -80,7 +83,7 @@ export default function Home() {
       homeTeam: { ...DEFAULT_TEAM, name: "Home Team" },
       awayTeam: { ...DEFAULT_TEAM, name: "Away Team" },
       referee: {
-        name: "Ref Name",
+        name: "Referee",
         severity: "medium",
         avgCardsPerMatch: 4.5,
       },
@@ -106,12 +109,26 @@ export default function Home() {
       <div className="flex flex-col items-center justify-center h-full min-h-[60vh] space-y-8 animate-pulse">
         <Activity className="w-24 h-24 text-primary animate-spin-slow glow-text" />
         <div className="text-center space-y-4">
-          <h2 className="text-3xl font-bold tracking-widest text-primary glow-text">RUNNING 10,000 SIMULATIONS</h2>
-          <p className="text-muted-foreground font-mono">CALCULATING BAYESIAN INFERENCE... APPLYING POISSON REGRESSION...</p>
+          <h2 className="text-3xl font-bold tracking-widest text-primary glow-text">{t.home.simulating}</h2>
+          <p className="text-muted-foreground font-mono">{t.home.simSubtitle}</p>
         </div>
       </div>
     );
   }
+
+  const weatherLabels: Record<string, string> = {
+    clear: t.home.clear,
+    rain: t.home.rain,
+    wind: t.home.wind,
+    snow: t.home.snow,
+    extreme_heat: t.home.extreme_heat,
+  };
+
+  const severityLabels: Record<string, string> = {
+    low: t.home.sevLow,
+    medium: t.home.sevMedium,
+    high: t.home.sevHigh,
+  };
 
   const renderTeamSection = (prefix: "homeTeam" | "awayTeam", title: string) => (
     <Card className="bg-card/50 backdrop-blur border-border/50 glow-border transition-all">
@@ -124,54 +141,54 @@ export default function Home() {
           name={`${prefix}.name`}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Team Name</FormLabel>
+              <FormLabel>{t.home.teamName}</FormLabel>
               <FormControl><Input {...field} className="font-mono bg-background/50 border-border/50 focus:border-primary glow-border" /></FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        
+
         <div className="grid grid-cols-2 gap-4">
           <FormField control={form.control} name={`${prefix}.xgFor`} render={({ field }) => (
-            <FormItem><FormLabel>xG For</FormLabel><FormControl><Input type="number" step="0.1" {...field} className="font-mono" /></FormControl></FormItem>
+            <FormItem><FormLabel>{t.home.xgFor}</FormLabel><FormControl><Input type="number" step="0.1" {...field} className="font-mono" /></FormControl></FormItem>
           )} />
           <FormField control={form.control} name={`${prefix}.xgAgainst`} render={({ field }) => (
-            <FormItem><FormLabel>xG Against</FormLabel><FormControl><Input type="number" step="0.1" {...field} className="font-mono" /></FormControl></FormItem>
+            <FormItem><FormLabel>{t.home.xgAgainst}</FormLabel><FormControl><Input type="number" step="0.1" {...field} className="font-mono" /></FormControl></FormItem>
           )} />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <FormField control={form.control} name={`${prefix}.shotsOnTargetFor`} render={({ field }) => (
-            <FormItem><FormLabel>Shots on Target For</FormLabel><FormControl><Input type="number" step="0.1" {...field} className="font-mono" /></FormControl></FormItem>
+            <FormItem><FormLabel>{t.home.shotsFor}</FormLabel><FormControl><Input type="number" step="0.1" {...field} className="font-mono" /></FormControl></FormItem>
           )} />
           <FormField control={form.control} name={`${prefix}.shotsOnTargetAgainst`} render={({ field }) => (
-            <FormItem><FormLabel>Shots on Target Against</FormLabel><FormControl><Input type="number" step="0.1" {...field} className="font-mono" /></FormControl></FormItem>
+            <FormItem><FormLabel>{t.home.shotsAgainst}</FormLabel><FormControl><Input type="number" step="0.1" {...field} className="font-mono" /></FormControl></FormItem>
           )} />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <FormField control={form.control} name={`${prefix}.avgCorners`} render={({ field }) => (
-            <FormItem><FormLabel>Avg Corners</FormLabel><FormControl><Input type="number" step="0.1" {...field} className="font-mono" /></FormControl></FormItem>
+            <FormItem><FormLabel>{t.home.avgCorners}</FormLabel><FormControl><Input type="number" step="0.1" {...field} className="font-mono" /></FormControl></FormItem>
           )} />
           <FormField control={form.control} name={`${prefix}.avgFouls`} render={({ field }) => (
-            <FormItem><FormLabel>Avg Fouls</FormLabel><FormControl><Input type="number" step="0.1" {...field} className="font-mono" /></FormControl></FormItem>
+            <FormItem><FormLabel>{t.home.avgFouls}</FormLabel><FormControl><Input type="number" step="0.1" {...field} className="font-mono" /></FormControl></FormItem>
           )} />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <FormField control={form.control} name={`${prefix}.avgYellowCards`} render={({ field }) => (
-            <FormItem><FormLabel>Avg Yellows</FormLabel><FormControl><Input type="number" step="0.1" {...field} className="font-mono" /></FormControl></FormItem>
+            <FormItem><FormLabel>{t.home.avgYellows}</FormLabel><FormControl><Input type="number" step="0.1" {...field} className="font-mono" /></FormControl></FormItem>
           )} />
           <FormField control={form.control} name={`${prefix}.avgRedCards`} render={({ field }) => (
-            <FormItem><FormLabel>Avg Reds</FormLabel><FormControl><Input type="number" step="0.1" {...field} className="font-mono" /></FormControl></FormItem>
+            <FormItem><FormLabel>{t.home.avgReds}</FormLabel><FormControl><Input type="number" step="0.1" {...field} className="font-mono" /></FormControl></FormItem>
           )} />
         </div>
 
         <FormField control={form.control} name={`${prefix}.formation`} render={({ field }) => (
           <FormItem>
-            <FormLabel>Formation</FormLabel>
+            <FormLabel>{t.home.formation}</FormLabel>
             <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <FormControl><SelectTrigger className="font-mono"><SelectValue placeholder="Select formation" /></SelectTrigger></FormControl>
+              <FormControl><SelectTrigger className="font-mono"><SelectValue placeholder={t.home.selectFormation} /></SelectTrigger></FormControl>
               <SelectContent>
                 {FORMATIONS.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
               </SelectContent>
@@ -181,7 +198,7 @@ export default function Home() {
 
         <FormField control={form.control} name={`${prefix}.color`} render={({ field }) => (
           <FormItem>
-            <FormLabel>Team Form</FormLabel>
+            <FormLabel>{t.home.teamForm}</FormLabel>
             <div className="flex gap-4">
               {["green", "yellow", "red"].map((c) => (
                 <button
@@ -200,7 +217,7 @@ export default function Home() {
         <FormField control={form.control} name={`${prefix}.injuryFactor`} render={({ field }) => (
           <FormItem>
             <FormLabel className="flex justify-between">
-              <span>Squad Fitness</span>
+              <span>{t.home.squadFitness}</span>
               <span className="font-mono text-primary">{(Number(field.value) * 100).toFixed(0)}%</span>
             </FormLabel>
             <FormControl>
@@ -221,52 +238,52 @@ export default function Home() {
     <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 pb-12">
       <div className="flex justify-between items-end border-b border-border/50 pb-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-widest text-foreground">SIMULATION PARAMETERS</h1>
-          <p className="text-muted-foreground font-mono mt-1">Configure match variables for Monte Carlo execution</p>
+          <h1 className="text-3xl font-bold tracking-widest text-foreground">{t.home.title}</h1>
+          <p className="text-muted-foreground font-mono mt-1">{t.home.subtitle}</p>
         </div>
       </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <div className="grid md:grid-cols-2 gap-8">
-            {renderTeamSection("homeTeam", "HOME TEAM")}
-            {renderTeamSection("awayTeam", "AWAY TEAM")}
+            {renderTeamSection("homeTeam", t.home.homeTeam)}
+            {renderTeamSection("awayTeam", t.home.awayTeam)}
           </div>
 
           <div className="grid md:grid-cols-2 gap-8">
             <Card className="bg-card/50 backdrop-blur border-border/50 glow-border transition-all">
-              <CardHeader><CardTitle className="text-xl tracking-wider">REFEREE</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-xl tracking-wider">{t.home.referee}</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <FormField control={form.control} name="referee.name" render={({ field }) => (
-                  <FormItem><FormLabel>Name</FormLabel><FormControl><Input {...field} className="font-mono" /></FormControl></FormItem>
+                  <FormItem><FormLabel>{t.home.refName}</FormLabel><FormControl><Input {...field} className="font-mono" /></FormControl></FormItem>
                 )} />
                 <div className="grid grid-cols-2 gap-4">
                   <FormField control={form.control} name="referee.severity" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Severity</FormLabel>
+                      <FormLabel>{t.home.severity}</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl><SelectTrigger className="font-mono"><SelectValue /></SelectTrigger></FormControl>
                         <SelectContent>
-                          <SelectItem value="low">Low</SelectItem>
-                          <SelectItem value="medium">Medium</SelectItem>
-                          <SelectItem value="high">High</SelectItem>
+                          <SelectItem value="low">{severityLabels.low}</SelectItem>
+                          <SelectItem value="medium">{severityLabels.medium}</SelectItem>
+                          <SelectItem value="high">{severityLabels.high}</SelectItem>
                         </SelectContent>
                       </Select>
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="referee.avgCardsPerMatch" render={({ field }) => (
-                    <FormItem><FormLabel>Avg Cards</FormLabel><FormControl><Input type="number" step="0.1" {...field} className="font-mono" /></FormControl></FormItem>
+                    <FormItem><FormLabel>{t.home.avgCards}</FormLabel><FormControl><Input type="number" step="0.1" {...field} className="font-mono" /></FormControl></FormItem>
                   )} />
                 </div>
               </CardContent>
             </Card>
 
             <Card className="bg-card/50 backdrop-blur border-border/50 glow-border transition-all">
-              <CardHeader><CardTitle className="text-xl tracking-wider">ENVIRONMENT</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-xl tracking-wider">{t.home.environment}</CardTitle></CardHeader>
               <CardContent>
                 <FormField control={form.control} name="weather" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Weather Conditions</FormLabel>
+                    <FormLabel>{t.home.weather}</FormLabel>
                     <div className="grid grid-cols-5 gap-2 pt-2">
                       {(Object.keys(WEATHER_ICONS) as Array<keyof typeof WEATHER_ICONS>).map((w) => {
                         const Icon = WEATHER_ICONS[w];
@@ -275,13 +292,13 @@ export default function Home() {
                             key={w}
                             onClick={() => field.onChange(w)}
                             className={`flex flex-col items-center justify-center p-3 rounded border cursor-pointer transition-all ${
-                              field.value === w 
-                                ? 'border-primary bg-primary/10 text-primary shadow-[0_0_10px_rgba(57,255,20,0.2)]' 
+                              field.value === w
+                                ? 'border-primary bg-primary/10 text-primary shadow-[0_0_10px_rgba(57,255,20,0.2)]'
                                 : 'border-border/50 text-muted-foreground hover:border-primary/50'
                             }`}
                           >
                             <Icon className="w-6 h-6 mb-2" />
-                            <span className="text-[10px] uppercase font-mono text-center">{w.replace('_', ' ')}</span>
+                            <span className="text-[10px] uppercase font-mono text-center">{weatherLabels[w]}</span>
                           </div>
                         );
                       })}
@@ -294,7 +311,7 @@ export default function Home() {
 
           <div className="pt-8">
             <Button type="submit" size="lg" className="w-full text-xl tracking-widest h-16 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-[0_0_20px_rgba(57,255,20,0.3)] hover:shadow-[0_0_30px_rgba(57,255,20,0.5)] transition-all">
-              INITIALIZE SIMULATION
+              {t.home.submitBtn}
             </Button>
           </div>
         </form>

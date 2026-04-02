@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "@/components/layout";
 import { SimulationProvider } from "@/lib/simulation-store";
+import { LangProvider } from "@/lib/lang";
 import NotFound from "@/pages/not-found";
 
 import Home from "@/pages/home";
@@ -28,16 +29,18 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <SimulationProvider>
-        <TooltipProvider>
-          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            <Layout>
-              <Router />
-            </Layout>
-          </WouterRouter>
-          <Toaster />
-        </TooltipProvider>
-      </SimulationProvider>
+      <LangProvider>
+        <SimulationProvider>
+          <TooltipProvider>
+            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+              <Layout>
+                <Router />
+              </Layout>
+            </WouterRouter>
+            <Toaster />
+          </TooltipProvider>
+        </SimulationProvider>
+      </LangProvider>
     </QueryClientProvider>
   );
 }
