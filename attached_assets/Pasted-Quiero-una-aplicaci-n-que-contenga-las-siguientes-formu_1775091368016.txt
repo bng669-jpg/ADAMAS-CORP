@@ -1,0 +1,38 @@
+Quiero una aplicación que contenga las siguientes formulas matemáticas Regresión Multivariable, Regresión de Poisson, Teorema de Bayes, Leyes de los grandes números, Transformaciones lineales, Simulación de Montecarlo, Campana de Gauss, Probabilidad empírica y Deep Learning
+Vas a agregar las 15 Fromaciones mas utilizadas en la ultima década del futbol y vas a crear un matchmaking para cada formación según cual sea mas efectiva contra las otras formaciones esto les dará beneficion a los equipos o los hará mas débiles, también cada eqipo tendrá un color (Verde, Amarillo o Rojo según que tan bien vaya en la tabla de la liga, este ajuste es manual, El verde le dará un plus a los equipos el amarillo mantendra una igualdad y el rojo recibirá una pequeña penalización esto para que un encuentro de formaciones beeficie al equipo con mejor posición en la tabla.
+La simulación de Montecarlo se realizara a 10000 veces
+Para correr el programa debemos ingresar los siguientes datos
+Por equipo:
+xG Favor
+xG Contra
+Tiros a puerta a favor
+Tiros a puerta en contra
+Promedio de Corners
+Tarjetas promedio (Amarillas y Rojas)
+Faltas promedio
+Formación 
+Color (Verde/Amarillo/Rojo)
+Bajas por equipo intervalo de 0 a 1
+Datos en general:
+Arbitro 
+Severidad
+Tarjetas por partido
+Clima
+
+Resultados
+Los resultados que se desean obtener son los siguientes
+Probabilidad de Victoria para cada equipo en porcentaje
+Mercado de goles
+Marcadores mas probables
+Goles probables por equipos y combinados
+Tiros a puerta probables por equipo y en conjunto
+Tarjetas amarillas por equipo y en conjunto
+Tiros de esquina por equipo y en conjunto
+Y una recomendación de apuesta con un riesgo de que pase del 50%
+
+Adicionales
+En una pestaña aparte una tabla de matchmaking con sus porcentajes a favor y en contra de las alineaciones, para cada alineación una descripción de est y sus ventajas y debilidades igual la alineación a la que le ganan y con la que pierden
+Un historial de apuestas que puedas volver o borrar
+
+Colores e interfaz
+Los colores quiero que sean verdes y blancos en un tono medio fosforescente algo futurista, el logo algo minimalista pero elegante el nombre para la aplicación es ¨ADAMAS¨

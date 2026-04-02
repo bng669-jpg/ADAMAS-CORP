@@ -1,15 +1,20 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: ADAMAS Football Match Prediction API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: simulation
+    description: Monte Carlo simulation endpoints
+  - name: formations
+    description: Football formation matchmaking
+  - name: history
+    description: Betting history management
 paths:
   /healthz:
     get:
@@ -24,6 +29,112 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /simulate:
+    post:
+      operationId: runSimulation
+      tags: [simulation]
+      summary: Run Monte Carlo simulation
+      description: Runs a 10000-iteration Monte Carlo football match simulation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SimulationInput"
+      responses:
+        "200":
+          description: Simulation results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimulationResult"
+
+  /formations:
+    get:
+      operationId: getFormations
+      tags: [formations]
+      summary: Get all formations with matchmaking data
+      description: Returns all 15 top football formations with their effectiveness data
+      responses:
+        "200":
+          description: Formations list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormationsResponse"
+
+  /formations/matchup:
+    post:
+      operationId: getFormationMatchup
+      tags: [formations]
+      summary: Get formation matchup analysis
+      description: Get specific formation vs formation analysis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FormationMatchupInput"
+      responses:
+        "200":
+          description: Matchup analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormationMatchup"
+
+  /history:
+    get:
+      operationId: getBettingHistory
+      tags: [history]
+      summary: Get betting history
+      description: Returns all saved betting history entries
+      responses:
+        "200":
+          description: History entries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HistoryResponse"
+    post:
+      operationId: saveBettingHistory
+      tags: [history]
+      summary: Save simulation result to history
+      description: Saves a simulation result and bet recommendation to history
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SaveHistoryInput"
+      responses:
+        "201":
+          description: Saved entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HistoryEntry"
+
+  /history/{id}:
+    delete:
+      operationId: deleteBettingHistory
+      tags: [history]
+      summary: Delete a betting history entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +145,400 @@ components:
       required:
         - status
 
+    TeamInput:
+      type: object
+      required:
+        - name
+        - xgFor
+        - xgAgainst
+        - shotsOnTargetFor
+        - shotsOnTargetAgainst
+        - avgCorners
+        - avgYellowCards
+        - avgRedCards
+        - avgFouls
+        - formation
+        - color
+        - injuryFactor
+      properties:
+        name:
+          type: string
+        xgFor:
+          type: number
+          description: Expected goals in favor per match
+        xgAgainst:
+          type: number
+          description: Expected goals against per match
+        shotsOnTargetFor:
+          type: number
+        shotsOnTargetAgainst:
+          type: number
+        avgCorners:
+          type: number
+        avgYellowCards:
+          type: number
+        avgRedCards:
+          type: number
+        avgFouls:
+          type: number
+        formation:
+          type: string
+          description: e.g. "4-3-3", "4-2-3-1"
+        color:
+          type: string
+          enum: [green, yellow, red]
+          description: Team form color (green=+bonus, yellow=neutral, red=-penalty)
+        injuryFactor:
+          type: number
+          description: 0 to 1, where 0 means heavy injuries and 1 means full squad
+
+    RefereeInput:
+      type: object
+      required:
+        - name
+        - severity
+        - avgCardsPerMatch
+      properties:
+        name:
+          type: string
+        severity:
+          type: string
+          enum: [low, medium, high]
+        avgCardsPerMatch:
+          type: number
+
+    SimulationInput:
+      type: object
+      required:
+        - homeTeam
+        - awayTeam
+        - referee
+        - weather
+      properties:
+        homeTeam:
+          $ref: "#/components/schemas/TeamInput"
+        awayTeam:
+          $ref: "#/components/schemas/TeamInput"
+        referee:
+          $ref: "#/components/schemas/RefereeInput"
+        weather:
+          type: string
+          enum: [clear, rain, wind, snow, extreme_heat]
+
+    ScorelineProbability:
+      type: object
+      required:
+        - home
+        - away
+        - probability
+      properties:
+        home:
+          type: integer
+        away:
+          type: integer
+        probability:
+          type: number
+
+    TeamSimResult:
+      type: object
+      required:
+        - winProbability
+        - avgGoals
+        - avgShotsOnTarget
+        - avgYellowCards
+        - avgCorners
+      properties:
+        winProbability:
+          type: number
+        avgGoals:
+          type: number
+        avgShotsOnTarget:
+          type: number
+        avgYellowCards:
+          type: number
+        avgCorners:
+          type: number
+
+    BetRecommendation:
+      type: object
+      required:
+        - recommendation
+        - market
+        - confidence
+        - risk
+        - reasoning
+      properties:
+        recommendation:
+          type: string
+        market:
+          type: string
+        confidence:
+          type: number
+        risk:
+          type: string
+          enum: [low, medium, high]
+        reasoning:
+          type: string
+
+    SimulationResult:
+      type: object
+      required:
+        - homeTeam
+        - awayTeam
+        - drawProbability
+        - expectedTotalGoals
+        - goalsMarket
+        - topScorelines
+        - combinedShotsOnTarget
+        - totalAvgYellowCards
+        - totalAvgCorners
+        - betRecommendations
+        - formationAdvantage
+        - simulationIterations
+      properties:
+        homeTeam:
+          $ref: "#/components/schemas/TeamSimResult"
+        awayTeam:
+          $ref: "#/components/schemas/TeamSimResult"
+        drawProbability:
+          type: number
+        expectedTotalGoals:
+          type: number
+        goalsMarket:
+          type: object
+          properties:
+            over25:
+              type: number
+            under25:
+              type: number
+            over35:
+              type: number
+            under35:
+              type: number
+            btts:
+              type: number
+          required: [over25, under25, over35, under35, btts]
+        topScorelines:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScorelineProbability"
+        combinedShotsOnTarget:
+          type: number
+        totalAvgYellowCards:
+          type: number
+        totalAvgCorners:
+          type: number
+        betRecommendations:
+          type: array
+          items:
+            $ref: "#/components/schemas/BetRecommendation"
+        formationAdvantage:
+          type: object
+          properties:
+            homeAdvantage:
+              type: number
+            awayAdvantage:
+              type: number
+            description:
+              type: string
+          required: [homeAdvantage, awayAdvantage, description]
+        simulationIterations:
+          type: integer
+
+    Formation:
+      type: object
+      required:
+        - id
+        - name
+        - description
+        - strengths
+        - weaknesses
+        - bestAgainst
+        - worstAgainst
+        - popularityRank
+        - winRateAvg
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        strengths:
+          type: array
+          items:
+            type: string
+        weaknesses:
+          type: array
+          items:
+            type: string
+        bestAgainst:
+          type: array
+          items:
+            type: string
+        worstAgainst:
+          type: array
+          items:
+            type: string
+        popularityRank:
+          type: integer
+        winRateAvg:
+          type: number
+        matchups:
+          type: object
+          additionalProperties:
+            type: number
+          description: Win rate vs each other formation
+
+    FormationsResponse:
+      type: object
+      required:
+        - formations
+      properties:
+        formations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Formation"
+
+    FormationMatchupInput:
+      type: object
+      required:
+        - homeFormation
+        - awayFormation
+      properties:
+        homeFormation:
+          type: string
+        awayFormation:
+          type: string
+
+    FormationMatchup:
+      type: object
+      required:
+        - homeFormation
+        - awayFormation
+        - homeWinRate
+        - awayWinRate
+        - drawRate
+        - analysis
+      properties:
+        homeFormation:
+          type: string
+        awayFormation:
+          type: string
+        homeWinRate:
+          type: number
+        awayWinRate:
+          type: number
+        drawRate:
+          type: number
+        analysis:
+          type: string
+
+    HistoryEntry:
+      type: object
+      required:
+        - id
+        - homeTeamName
+        - awayTeamName
+        - homeWinProb
+        - awayWinProb
+        - drawProb
+        - betRecommendation
+        - createdAt
+      properties:
+        id:
+          type: integer
+        homeTeamName:
+          type: string
+        awayTeamName:
+          type: string
+        homeFormation:
+          type: string
+        awayFormation:
+          type: string
+        homeColor:
+          type: string
+        awayColor:
+          type: string
+        homeWinProb:
+          type: number
+        awayWinProb:
+          type: number
+        drawProb:
+          type: number
+        expectedGoals:
+          type: number
+        betRecommendation:
+          type: string
+        betMarket:
+          type: string
+        betConfidence:
+          type: number
+        weather:
+          type: string
+        referee:
+          type: string
+        notes:
+          type: string
+        createdAt:
+          type: string
+
+    HistoryResponse:
+      type: object
+      required:
+        - entries
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/HistoryEntry"
+
+    SaveHistoryInput:
+      type: object
+      required:
+        - homeTeamName
+        - awayTeamName
+        - homeWinProb
+        - awayWinProb
+        - drawProb
+      properties:
+        homeTeamName:
+          type: string
+        awayTeamName:
+          type: string
+        homeFormation:
+          type: string
+        awayFormation:
+          type: string
+        homeColor:
+          type: string
+        awayColor:
+          type: string
+        homeWinProb:
+          type: number
+        awayWinProb:
+          type: number
+        drawProb:
+          type: number
+        expectedGoals:
+          type: number
+        betRecommendation:
+          type: string
+        betMarket:
+          type: string
+        betConfidence:
+          type: number
+        weather:
+          type: string
+        referee:
+          type: string
+        notes:
+          type: string
+
+    DeleteResult:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
