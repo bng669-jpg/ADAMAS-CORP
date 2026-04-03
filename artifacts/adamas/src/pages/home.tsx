@@ -199,16 +199,27 @@ export default function Home() {
         <FormField control={form.control} name={`${prefix}.color`} render={({ field }) => (
           <FormItem>
             <FormLabel>{t.home.teamForm}</FormLabel>
-            <div className="flex gap-4">
-              {["green", "yellow", "red"].map((c) => (
+            <div className="flex gap-5 pt-1">
+              {([
+                { value: "green", bg: "bg-green-500", label: "+10%", textColor: "text-green-400" },
+                { value: "yellow", bg: "bg-yellow-500", label: "0%", textColor: "text-yellow-400" },
+                { value: "red", bg: "bg-red-500", label: "-10%", textColor: "text-red-400" },
+              ] as const).map(({ value: c, bg, label, textColor }) => (
                 <button
                   key={c}
                   type="button"
                   onClick={() => field.onChange(c)}
-                  className={`w-8 h-8 rounded-full border-2 transition-all ${
-                    field.value === c ? 'border-primary scale-110 shadow-[0_0_10px_rgba(57,255,20,0.5)]' : 'border-transparent opacity-50'
-                  } ${c === 'green' ? 'bg-green-500' : c === 'yellow' ? 'bg-yellow-500' : 'bg-red-500'}`}
-                />
+                  className="flex flex-col items-center gap-1 group"
+                >
+                  <span className={`text-[11px] font-mono font-bold tracking-tight transition-opacity ${textColor} ${field.value === c ? 'opacity-100' : 'opacity-40 group-hover:opacity-70'}`}>
+                    {label}
+                  </span>
+                  <div className={`w-8 h-8 rounded-full border-2 transition-all ${
+                    field.value === c
+                      ? 'border-primary scale-110 shadow-[0_0_10px_rgba(57,255,20,0.5)]'
+                      : 'border-transparent opacity-50 group-hover:opacity-75'
+                  } ${bg}`} />
+                </button>
               ))}
             </div>
           </FormItem>
