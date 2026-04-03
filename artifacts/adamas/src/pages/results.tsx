@@ -7,13 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   PieChart, Pie, Cell, ResponsiveContainer,
-  BarChart, Bar, XAxis, YAxis, Tooltip, Cell as BarCell,
-  ReferenceLine,
+  BarChart, Bar, XAxis, YAxis, Tooltip,
+  Cell as BarCell, ReferenceLine,
 } from "recharts";
 import { ArrowLeft, Save, Target, Crosshair, Triangle, CircleDot, Goal } from "lucide-react";
-import type { SimulationResult } from "@workspace/api-client-react";
 
 type DistBucket = { value: number; count: number; pct: number };
+type BetRec = { recommendation: string; market: string; confidence: number; risk: string; reasoning: string };
 
 export default function Results() {
   const [, setLocation] = useLocation();
@@ -23,7 +23,7 @@ export default function Results() {
   const { t } = useLang();
 
   if (!result || !input) {
-    setLocation("/");
+    setTimeout(() => setLocation("/"), 0);
     return null;
   }
 
@@ -65,29 +65,21 @@ export default function Results() {
     prob: parseFloat((s.probability * 100).toFixed(1)),
   }));
 
-  const riskColors: Record<string, string> = {
-    low: "text-green-400 border-green-500 bg-green-500/10",
-    medium: "text-yellow-400 border-yellow-500 bg-yellow-500/10",
-    high: "text-red-400 border-red-500 bg-red-500/10",
+  const riskStyles: Record<string, { badge: string; border: string; bg: string; text: string; label: string }> = {
+    low: { badge: "bg-green-500/20 text-green-300 border-green-500/40", border: "border-green-500/30", bg: "bg-green-500/5", text: "text-green-300", label: t.results.low },
+    medium: { badge: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40", border: "border-yellow-500/30", bg: "bg-yellow-500/5", text: "text-yellow-300", label: t.results.medium },
+    high: { badge: "bg-red-500/20 text-red-300 border-red-500/40", border: "border-red-500/30", bg: "bg-red-500/5", text: "text-red-300", label: t.results.high },
   };
 
-  const riskLabel: Record<string, string> = {
-    low: t.results.low,
-    medium: t.results.medium,
-    high: t.results.high,
-  };
-
-  const bets = result.betRecommendations;
-  const goalsBet = bets.find(b => b.market === "GOALS");
-  const cardsBet = bets.find(b => b.market === "YELLOW CARDS");
-  const cornersBet = bets.find(b => b.market === "CORNERS");
-  const shotsBet = bets.find(b => b.market === "SHOTS ON TARGET");
+  // Group bets by market
+  const betsByMarket = (market: string): BetRec[] =>
+    (result.betRecommendations as BetRec[]).filter(b => b.market === market);
 
   const betSections = [
-    { key: "goals", label: t.results.goalsBet, bet: goalsBet, Icon: Goal },
-    { key: "cards", label: t.results.cardsBet, bet: cardsBet, Icon: CircleDot },
-    { key: "corners", label: t.results.cornersBet, bet: cornersBet, Icon: Triangle },
-    { key: "shots", label: t.results.shotsBet, bet: shotsBet, Icon: Crosshair },
+    { key: "GOALS", label: t.results.goalsBet, Icon: Goal, color: "hsl(109,100%,54%)" },
+    { key: "YELLOW CARDS", label: t.results.cardsBet, Icon: CircleDot, color: "hsl(45,90%,55%)" },
+    { key: "CORNERS", label: t.results.cornersBet, Icon: Triangle, color: "hsl(200,90%,60%)" },
+    { key: "SHOTS ON TARGET", label: t.results.shotsBet, Icon: Crosshair, color: "hsl(280,80%,65%)" },
   ];
 
   const StatRow = ({ label, home, combined, away }: { label: string; home: string; combined: string; away: string }) => (
@@ -110,60 +102,88 @@ export default function Results() {
     </div>
   );
 
-  // Gaussian distribution chart component
+  // Gaussian distribution bar chart component (taller, 2×2 grid)
   const DistributionChart = ({
     data,
     avgValue,
     color,
     unitLabel,
     statLabel,
+    icon: Icon,
   }: {
     data: DistBucket[];
     avgValue: number;
     color: string;
     unitLabel: string;
     statLabel: string;
+    icon: React.ElementType;
   }) => {
     const maxPct = Math.max(...data.map(d => d.pct), 1);
     const avgRounded = Math.round(avgValue);
+    const modeVal = data.reduce((best, d) => (d.pct > best.pct ? d : best), data[0] ?? { value: 0, pct: 0, count: 0 });
 
     const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: DistBucket }> }) => {
       if (!active || !payload?.length) return null;
       const d = payload[0].payload;
       return (
         <div className="bg-card border border-border/80 rounded px-3 py-2 text-xs font-mono shadow-lg">
-          <div className="text-foreground font-bold mb-1">
+          <div style={{ color }} className="font-bold mb-1 text-sm">
             {d.value} {unitLabel}
           </div>
-          <div className="text-primary">{d.pct.toFixed(1)}% — {d.count.toLocaleString()} {t.results.simLabel}</div>
+          <div className="text-foreground">{d.pct.toFixed(2)}% de las simulaciones</div>
+          <div className="text-muted-foreground">{d.count.toLocaleString()} / 10,000 iteraciones</div>
         </div>
       );
     };
 
     return (
-      <Card className="bg-card/50 border-border/50 glow-border">
-        <CardHeader className="pb-1 pt-4 px-4">
-          <CardTitle className="text-xs tracking-widest text-muted-foreground">{statLabel}</CardTitle>
-          <div className="text-2xl font-bold text-primary font-mono mt-1 glow-text">{avgValue.toFixed(1)}</div>
+      <Card className="bg-card/60 border-border/50 glow-border flex flex-col">
+        <CardHeader className="pb-2 pt-5 px-5">
+          <div className="flex items-center gap-2 mb-1">
+            <Icon className="w-4 h-4" style={{ color }} />
+            <CardTitle className="text-xs tracking-widest font-mono" style={{ color }}>{statLabel}</CardTitle>
+          </div>
+          <div className="flex items-end gap-3 mt-2">
+            <div>
+              <div className="text-[10px] text-muted-foreground font-mono tracking-wider">MEDIA</div>
+              <div className="text-3xl font-bold font-mono glow-text" style={{ color }}>{avgValue.toFixed(1)}</div>
+            </div>
+            <div className="text-right ml-auto">
+              <div className="text-[10px] text-muted-foreground font-mono tracking-wider">MODA</div>
+              <div className="text-xl font-bold font-mono text-foreground/70">{modeVal.value}</div>
+            </div>
+          </div>
+          <div className="mt-2 flex gap-3 text-[11px] font-mono text-muted-foreground">
+            <span>Más probable: <span className="font-bold text-foreground/80">{modeVal.value} {unitLabel} ({modeVal.pct.toFixed(1)}%)</span></span>
+          </div>
         </CardHeader>
-        <CardContent className="px-2 pb-3">
-          <div className="h-28">
+        <CardContent className="px-3 pb-4 flex-1">
+          <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data} margin={{ top: 4, right: 4, left: -20, bottom: 0 }} barCategoryGap="10%">
+              <BarChart data={data} margin={{ top: 4, right: 8, left: -12, bottom: 4 }} barCategoryGap="8%">
                 <XAxis
                   dataKey="value"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10, fontFamily: "monospace" }}
+                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11, fontFamily: "monospace", fontWeight: "bold" }}
+                  label={{ value: unitLabel, position: "insideBottom", offset: -2, fill: "hsl(var(--muted-foreground))", fontSize: 10, fontFamily: "monospace" }}
                 />
-                <YAxis hide domain={[0, maxPct * 1.15]} />
-                <ReferenceLine x={avgRounded} stroke={color} strokeDasharray="3 3" strokeOpacity={0.6} />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10, fontFamily: "monospace" }}
+                  tickFormatter={(v) => `${v.toFixed(0)}%`}
+                  domain={[0, maxPct * 1.15]}
+                  width={36}
+                />
+                <ReferenceLine x={avgRounded} stroke={color} strokeDasharray="4 3" strokeOpacity={0.7} strokeWidth={1.5} label={{ value: "μ", fill: color, fontSize: 11, fontFamily: "monospace" }} />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
-                <Bar dataKey="pct" radius={[2, 2, 0, 0]}>
+                <Bar dataKey="pct" radius={[3, 3, 0, 0]}>
                   {data.map((entry) => (
                     <BarCell
                       key={entry.value}
-                      fill={entry.value === avgRounded ? color : `${color}88`}
+                      fill={entry.value === modeVal.value ? color : `${color}99`}
+                      opacity={entry.value === avgRounded || entry.value === modeVal.value ? 1 : 0.7}
                     />
                   ))}
                 </Bar>
@@ -200,7 +220,6 @@ export default function Results() {
         <div className="text-center w-5/12">
           <h2 className="text-xl md:text-2xl font-bold tracking-wider">{input.homeTeam.name}</h2>
           <p className="text-muted-foreground font-mono mt-1 text-sm">{input.homeTeam.formation}</p>
-          <div className={`inline-block mt-2 w-3 h-3 rounded-full ${input.homeTeam.color === 'green' ? 'bg-green-500' : input.homeTeam.color === 'yellow' ? 'bg-yellow-500' : 'bg-red-500'}`} />
         </div>
         <div className="text-center w-2/12">
           <div className="text-lg font-bold text-primary font-mono glow-text">{t.results.vs}</div>
@@ -209,13 +228,11 @@ export default function Results() {
         <div className="text-center w-5/12">
           <h2 className="text-xl md:text-2xl font-bold tracking-wider">{input.awayTeam.name}</h2>
           <p className="text-muted-foreground font-mono mt-1 text-sm">{input.awayTeam.formation}</p>
-          <div className={`inline-block mt-2 w-3 h-3 rounded-full ${input.awayTeam.color === 'green' ? 'bg-green-500' : input.awayTeam.color === 'yellow' ? 'bg-yellow-500' : 'bg-red-500'}`} />
         </div>
       </div>
 
       {/* Win Probability + Stats Summary */}
       <div className="grid md:grid-cols-2 gap-8">
-        {/* Win Probability */}
         <Card className="bg-card/50 border-border/50 glow-border">
           <CardHeader><CardTitle className="tracking-widest text-sm">{t.results.winProb}</CardTitle></CardHeader>
           <CardContent>
@@ -244,52 +261,32 @@ export default function Results() {
           </CardContent>
         </Card>
 
-        {/* Stats Summary */}
         <Card className="bg-card/50 border-border/50 glow-border">
           <CardHeader><CardTitle className="tracking-widest text-sm">{t.results.statsTitle}</CardTitle></CardHeader>
           <CardContent className="space-y-5 pt-2">
-            <StatRow
-              label={t.results.expectedGoals}
-              home={result.homeTeam.avgGoals.toFixed(2)}
-              combined={result.expectedTotalGoals.toFixed(2)}
-              away={result.awayTeam.avgGoals.toFixed(2)}
-            />
-            <StatRow
-              label={t.results.shotsOnTarget}
-              home={result.homeTeam.avgShotsOnTarget.toFixed(1)}
-              combined={result.combinedShotsOnTarget.toFixed(1)}
-              away={result.awayTeam.avgShotsOnTarget.toFixed(1)}
-            />
-            <StatRow
-              label={t.results.corners}
-              home={result.homeTeam.avgCorners.toFixed(1)}
-              combined={result.totalAvgCorners.toFixed(1)}
-              away={result.awayTeam.avgCorners.toFixed(1)}
-            />
-            <StatRow
-              label={t.results.yellowCards}
-              home={result.homeTeam.avgYellowCards.toFixed(1)}
-              combined={result.totalAvgYellowCards.toFixed(1)}
-              away={result.awayTeam.avgYellowCards.toFixed(1)}
-            />
+            <StatRow label={t.results.expectedGoals} home={result.homeTeam.avgGoals.toFixed(2)} combined={result.expectedTotalGoals.toFixed(2)} away={result.awayTeam.avgGoals.toFixed(2)} />
+            <StatRow label={t.results.shotsOnTarget} home={result.homeTeam.avgShotsOnTarget.toFixed(1)} combined={result.combinedShotsOnTarget.toFixed(1)} away={result.awayTeam.avgShotsOnTarget.toFixed(1)} />
+            <StatRow label={t.results.corners} home={result.homeTeam.avgCorners.toFixed(1)} combined={result.totalAvgCorners.toFixed(1)} away={result.awayTeam.avgCorners.toFixed(1)} />
+            <StatRow label={t.results.yellowCards} home={result.homeTeam.avgYellowCards.toFixed(1)} combined={result.totalAvgYellowCards.toFixed(1)} away={result.awayTeam.avgYellowCards.toFixed(1)} />
           </CardContent>
         </Card>
       </div>
 
-      {/* GAUSSIAN DISTRIBUTIONS — 4 charts */}
+      {/* GAUSSIAN DISTRIBUTIONS — 2×2 grid, large & readable */}
       {dist && (
         <div>
           <div className="border-b border-border/50 pb-3 mb-5">
             <h2 className="text-xl font-bold tracking-widest">{t.results.gaussTitle}</h2>
             <p className="text-xs text-muted-foreground font-mono mt-1">{t.results.gaussSubtitle}</p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <DistributionChart
               data={dist.goals}
               avgValue={result.expectedTotalGoals}
               color="hsl(109, 100%, 54%)"
               unitLabel={t.results.gaussGoalsUnit}
               statLabel={t.results.gaussGoalsLabel}
+              icon={Goal}
             />
             <DistributionChart
               data={dist.yellowCards}
@@ -297,6 +294,7 @@ export default function Results() {
               color="hsl(45, 90%, 55%)"
               unitLabel={t.results.gaussYellowUnit}
               statLabel={t.results.gaussYellowLabel}
+              icon={CircleDot}
             />
             <DistributionChart
               data={dist.corners}
@@ -304,6 +302,7 @@ export default function Results() {
               color="hsl(200, 90%, 60%)"
               unitLabel={t.results.gaussCornersUnit}
               statLabel={t.results.gaussCornersLabel}
+              icon={Triangle}
             />
             <DistributionChart
               data={dist.shotsOnTarget}
@@ -311,6 +310,7 @@ export default function Results() {
               color="hsl(280, 80%, 65%)"
               unitLabel={t.results.gaussShotsUnit}
               statLabel={t.results.gaussShotsLabel}
+              icon={Crosshair}
             />
           </div>
         </div>
@@ -325,18 +325,8 @@ export default function Results() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={scorelinesData} layout="vertical" margin={{ top: 0, right: 30, left: 30, bottom: 0 }}>
                   <XAxis type="number" hide />
-                  <YAxis
-                    dataKey="name"
-                    type="category"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 13, fontFamily: 'monospace', fontWeight: 'bold' }}
-                    width={40}
-                  />
-                  <Tooltip
-                    formatter={(val: number) => [`${val.toFixed(1)}%`, t.results.probability]}
-                    contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', fontFamily: 'monospace' }}
-                  />
+                  <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 13, fontFamily: 'monospace', fontWeight: 'bold' }} width={40} />
+                  <Tooltip formatter={(val: number) => [`${val.toFixed(1)}%`, t.results.probability]} contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', fontFamily: 'monospace' }} />
                   <Bar dataKey="prob" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -358,7 +348,7 @@ export default function Results() {
                 <span className="font-mono text-xs text-muted-foreground tracking-widest">{label}</span>
                 <div className="flex items-center gap-3">
                   <div className="w-24 h-1.5 bg-border/30 rounded-full overflow-hidden">
-                    <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${Math.min(100, val * 100)}%` }} />
+                    <div className="h-full bg-primary rounded-full" style={{ width: `${Math.min(100, val * 100)}%` }} />
                   </div>
                   <span className={`font-bold font-mono text-sm w-12 text-right ${color}`}>{(val * 100).toFixed(1)}%</span>
                 </div>
@@ -371,30 +361,42 @@ export default function Results() {
         </Card>
       </div>
 
-      {/* 4 Bet Recommendations */}
+      {/* 4 × 3 Bet Recommendations (3 risk levels per market) */}
       <div>
         <div className="flex items-center gap-2 border-b border-border/50 pb-3 mb-6">
           <Target className="w-5 h-5 text-primary" />
           <h2 className="text-xl font-bold tracking-widest">{t.results.betRecs}</h2>
+          <span className="ml-2 text-xs font-mono text-muted-foreground">{t.results.betRecsSubtitle}</span>
         </div>
         <div className="grid md:grid-cols-2 gap-6">
-          {betSections.map(({ key, label, bet, Icon }) => {
-            if (!bet) return null;
+          {betSections.map(({ key, label, Icon, color }) => {
+            const bets = betsByMarket(key);
             return (
-              <div key={key} className={`p-5 border rounded-lg ${riskColors[bet.risk]} space-y-3`}>
-                <div className="flex items-center gap-2 mb-1">
-                  <Icon className="w-4 h-4 opacity-80" />
-                  <span className="text-[11px] font-mono tracking-widest opacity-70 uppercase">{label}</span>
-                </div>
-                <div className="flex justify-between items-start">
-                  <div className="font-bold tracking-wide text-base leading-tight flex-1 pr-2">{bet.recommendation}</div>
-                  <div className="text-right flex-shrink-0">
-                    <div className="font-bold font-mono text-xl">{bet.confidence.toFixed(0)}%</div>
-                    <div className="text-[10px] uppercase tracking-widest opacity-70">{riskLabel[bet.risk]} {t.results.risk}</div>
+              <Card key={key} className="bg-card/40 border-border/50">
+                <CardHeader className="pb-3 pt-4 px-4">
+                  <div className="flex items-center gap-2">
+                    <Icon className="w-4 h-4" style={{ color }} />
+                    <CardTitle className="text-xs font-mono tracking-widest" style={{ color }}>{label}</CardTitle>
                   </div>
-                </div>
-                <div className="text-xs font-mono opacity-80 border-t border-current/20 pt-3 leading-relaxed">{bet.reasoning}</div>
-              </div>
+                </CardHeader>
+                <CardContent className="px-4 pb-4 space-y-3">
+                  {bets.map((bet) => {
+                    const rs = riskStyles[bet.risk] ?? riskStyles.high;
+                    return (
+                      <div key={bet.risk} className={`rounded-md border p-3 space-y-2 ${rs.border} ${rs.bg}`}>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border ${rs.badge} tracking-widest uppercase`}>
+                            {rs.label} {t.results.risk}
+                          </span>
+                          <span className={`text-xl font-bold font-mono ${rs.text}`}>{bet.confidence.toFixed(0)}%</span>
+                        </div>
+                        <div className="font-semibold text-sm text-foreground/90 leading-tight">{bet.recommendation}</div>
+                        <div className="text-[11px] font-mono text-muted-foreground leading-relaxed border-t border-current/10 pt-2">{bet.reasoning}</div>
+                      </div>
+                    );
+                  })}
+                </CardContent>
+              </Card>
             );
           })}
         </div>
