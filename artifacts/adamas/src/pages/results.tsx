@@ -7,8 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   PieChart, Pie, Cell, ResponsiveContainer,
-  BarChart, Bar, XAxis, YAxis, Tooltip,
-  Cell as BarCell, ReferenceLine,
+  BarChart, Bar, XAxis, YAxis, Tooltip, ReferenceLine,
 } from "recharts";
 import { ArrowLeft, Save, Target, Crosshair, Triangle, CircleDot, Goal } from "lucide-react";
 
@@ -180,8 +179,8 @@ export default function Results() {
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
                 <Bar dataKey="pct" radius={[3, 3, 0, 0]}>
                   {data.map((entry) => (
-                    <BarCell
-                      key={entry.value}
+                    <Cell
+                      key={`cell-${entry.value}`}
                       fill={entry.value === modeVal.value ? color : `${color}99`}
                       opacity={entry.value === avgRounded || entry.value === modeVal.value ? 1 : 0.7}
                     />
