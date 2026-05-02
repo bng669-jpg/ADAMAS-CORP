@@ -212,6 +212,8 @@ export function runMonteCarlo(input: SimulationInput): SimulationResult {
   let totalHomeRed = 0, totalAwayRed = 0;
   let totalHomeCorners = 0, totalAwayCorners = 0;
   let cornersOver85 = 0, cornersOver105 = 0;
+  // Yellow card over-threshold counters (for Laplace rule)
+  let yellows_o25 = 0, yellows_o35 = 0, yellows_o45 = 0, yellows_o55 = 0;
 
   // Distribution histograms (value → count)
   const goalsDistMap: Map<number, number> = new Map();
@@ -250,6 +252,13 @@ export function runMonteCarlo(input: SimulationInput): SimulationResult {
     totalAwayYellow += awayYellow;
     totalHomeRed += homeRed;
     totalAwayRed += awayRed;
+
+    // Track yellow card thresholds (Laplace rule)
+    const totalSimYellow = homeYellow + awayYellow;
+    if (totalSimYellow > 2) yellows_o25++;
+    if (totalSimYellow > 3) yellows_o35++;
+    if (totalSimYellow > 4) yellows_o45++;
+    if (totalSimYellow > 5) yellows_o55++;
 
     const homeCorners = gaussianRandom(homeTeam.avgCorners * wx.cornerMult, 1.2);
     const awayCorners = gaussianRandom(awayTeam.avgCorners * wx.cornerMult, 1.2);
@@ -303,6 +312,12 @@ export function runMonteCarlo(input: SimulationInput): SimulationResult {
   const cornersO85Rate = cornersOver85 / ITERATIONS;
   const cornersO105Rate = cornersOver105 / ITERATIONS;
 
+  // Laplace rule of succession: P = (k + 1) / (n + 2)
+  const yellLaplace25 = (yellows_o25 + 1) / (ITERATIONS + 2);
+  const yellLaplace35 = (yellows_o35 + 1) / (ITERATIONS + 2);
+  const yellLaplace45 = (yellows_o45 + 1) / (ITERATIONS + 2);
+  const yellLaplace55 = (yellows_o55 + 1) / (ITERATIONS + 2);
+
   const buildDist = (map: Map<number, number>, maxVal: number): DistributionBucket[] => {
     const result: DistributionBucket[] = [];
     for (let v = 0; v <= maxVal; v++) {
@@ -332,6 +347,7 @@ export function runMonteCarlo(input: SimulationInput): SimulationResult {
     avgHomeGoals, avgAwayGoals,
     over25, over35, btts,
     avgHomeYellow, avgAwayYellow, totalYellow,
+    yellLaplace25, yellLaplace35, yellLaplace45, yellLaplace55,
     avgHomeCorners, avgAwayCorners, totalCorners, cornersO85Rate, cornersO105Rate,
     avgHomeShots, avgAwayShots, totalShots,
     homeTeam, awayTeam
@@ -406,6 +422,7 @@ function generateCategorizedBets(
   homeGoals: number, awayGoals: number,
   over25: number, over35: number, btts: number,
   homeYellow: number, awayYellow: number, totalYellow: number,
+  yellL25: number, yellL35: number, yellL45: number, yellL55: number,
   homeCorners: number, awayCorners: number, totalCorners: number,
   cornersO85: number, cornersO105: number,
   homeShots: number, awayShots: number, totalShots: number,
@@ -458,38 +475,45 @@ function generateCategorizedBets(
     reasoning: `BTTS requiere que ambos equipos conviertan. xG Local: ${homeGoals.toFixed(2)}, xG Visitante: ${awayGoals.toFixed(2)}. Probabilidad Bayesiana real: ${bttsRaw.toFixed(1)}%. Clasificado como ${bttsRisk === "medium" ? "riesgo medio" : "riesgo alto"} — cuota elevada recomendada.`,
   });
 
-  // ── AMARILLAS: 3 bets ──
-  const y35raw = Math.min(85, 50 + Math.abs(totalYellow - 3.5) * 12);
-  const y35conf = clampLow(y35raw);
-  const y35label = totalYellow >= 3.5 ? `Más de 3.5 Amarillas` : `Menos de 3.5 Amarillas`;
+  // ── AMARILLAS: 3 bets — Regla de Laplace ──
+  // P_laplace(Over X.5) = (k + 1) / (n + 2). Confidence = max(p, 1-p)*100.
+  // Sort thresholds by confidence (most certain → LOW risk, least certain → HIGH risk).
+  const yThresholds = [
+    { thresh: "2.5", lp: yellL25 },
+    { thresh: "3.5", lp: yellL35 },
+    { thresh: "4.5", lp: yellL45 },
+    { thresh: "5.5", lp: yellL55 },
+  ].map(({ thresh, lp }) => ({
+    thresh,
+    lp,
+    side: lp >= 0.5 ? `Más de ${thresh} Amarillas` : `Menos de ${thresh} Amarillas`,
+    conf: Math.max(lp, 1 - lp) * 100,
+  })).sort((a, b) => b.conf - a.conf);
+
+  const [yLow, yMed, yHigh] = yThresholds;
+
   recs.push({
-    recommendation: `${y35label} — ${y35conf}%`,
+    recommendation: `${yLow.side} — ${clampLow(yLow.conf)}%`,
     market: "YELLOW CARDS",
-    confidence: y35conf,
+    confidence: clampLow(yLow.conf),
     risk: "low",
-    reasoning: `Promedio simulado: ${totalYellow.toFixed(1)} amarillas (L: ${homeYellow.toFixed(1)}, V: ${awayYellow.toFixed(1)}). Umbral 3.5: mercado estándar. Probabilidad bruta: ${y35raw.toFixed(1)}%. Calibrado a rango de bajo riesgo.`,
+    reasoning: `Laplace: P(${yLow.side}) = ${yLow.conf.toFixed(1)}% (${yLow.thresh} es el umbral más certero). Promedio simulado: ${totalYellow.toFixed(1)} amarillas (L: ${homeYellow.toFixed(1)}, V: ${awayYellow.toFixed(1)}). Menor cuota, mayor fiabilidad.`,
   });
 
-  const y25raw = Math.min(75, 48 + Math.abs(totalYellow - 2.5) * 8);
-  const y25conf = clampMed(y25raw);
-  const y25label = totalYellow >= 2.5 ? `Más de 2.5 Amarillas` : `Menos de 2.5 Amarillas`;
   recs.push({
-    recommendation: `${y25label} — ${y25conf}%`,
+    recommendation: `${yMed.side} — ${clampMed(yMed.conf)}%`,
     market: "YELLOW CARDS",
-    confidence: y25conf,
+    confidence: clampMed(yMed.conf),
     risk: "medium",
-    reasoning: `Umbral 2.5 — cuota intermedia. Promedio simulado: ${totalYellow.toFixed(1)} amarillas. Probabilidad bruta: ${y25raw.toFixed(1)}%. Árbitro y presión táctica considerados.`,
+    reasoning: `Laplace: P(${yMed.side}) = ${yMed.conf.toFixed(1)}%. Umbral ${yMed.thresh}: cuota intermedia. Árbitro y condiciones climáticas ponderados en el modelo.`,
   });
 
-  const y55raw = Math.min(55, 30 + Math.abs(totalYellow - 5.5) * 5);
-  const y55conf = clampHigh(y55raw);
-  const y55label = totalYellow >= 5.5 ? `Más de 5.5 Amarillas` : `Menos de 5.5 Amarillas`;
   recs.push({
-    recommendation: `${y55label} — ${y55conf}%`,
+    recommendation: `${yHigh.side} — ${clampHigh(yHigh.conf)}%`,
     market: "YELLOW CARDS",
-    confidence: y55conf,
+    confidence: clampHigh(yHigh.conf),
     risk: "high",
-    reasoning: `Umbral extremo 5.5: cuota alta, baja frecuencia. Probabilidad bruta: ${y55raw.toFixed(1)}%. Alto riesgo — solo recomendable si la cuota ofrecida supera 3.0.`,
+    reasoning: `Laplace: P(${yHigh.side}) = ${yHigh.conf.toFixed(1)}%. Umbral ${yHigh.thresh}: el más incierto estadísticamente — cuota alta esperada. Solo si bankroll controlado.`,
   });
 
   // ── CORNERS: 3 bets ──

@@ -322,7 +322,7 @@ export default function Results() {
         <Card className="bg-card/50 border-border/50 glow-border">
           <CardHeader><CardTitle className="tracking-widest text-sm">{t.results.probableScorelines}</CardTitle></CardHeader>
           <CardContent>
-            <div className="h-72">
+            <div className="h-96">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={scorelinesData} layout="vertical" margin={{ top: 0, right: 30, left: 30, bottom: 0 }}>
                   <XAxis type="number" hide />
