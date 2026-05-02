@@ -278,7 +278,6 @@ export default function Results() {
         <div>
           <div className="border-b border-border/50 pb-3 mb-5">
             <h2 className="text-xl font-bold tracking-widest">{t.results.gaussTitle}</h2>
-            <p className="text-xs text-muted-foreground font-mono mt-1">{t.results.gaussSubtitle}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <DistributionChart
