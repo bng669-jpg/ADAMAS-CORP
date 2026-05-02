@@ -132,28 +132,6 @@ function FullResultModal({
                   </div>
                 ))}
               </div>
-              {/* Mini pie */}
-              <div className="flex justify-center mt-2">
-                <div className="w-28 h-28">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={[
-                          { v: result.homeTeam.winProbability * 100, color: "hsl(109,100%,54%)" },
-                          { v: result.drawProbability * 100,           color: "hsl(45,90%,55%)"   },
-                          { v: result.awayTeam.winProbability * 100,  color: "hsl(0,100%,55%)"   },
-                        ]}
-                        dataKey="v" innerRadius={30} outerRadius={52} paddingAngle={3}
-                        startAngle={90} endAngle={-270}
-                      >
-                        {[0,1,2].map((i) => (
-                          <Cell key={i} fill={["hsl(109,100%,54%)","hsl(45,90%,55%)","hsl(0,100%,55%)"][i]} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
             </section>
 
             {/* ── 2. MATCH STATISTICS ─────────────────────────────────── */}
