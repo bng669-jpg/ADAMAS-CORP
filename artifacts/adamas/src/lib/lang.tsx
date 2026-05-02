@@ -156,7 +156,7 @@ const translations = {
     },
     home: {
       title: "PARÁMETROS DE SIMULACIÓN",
-      subtitle: "Configure las variables del partido para la ejecución Monte Carlo",
+      subtitle: "Configure las variables del partido para ejecutar la simulación",
       homeTeam: "EQUIPO LOCAL",
       awayTeam: "EQUIPO VISITANTE",
       teamName: "Nombre del Equipo",
