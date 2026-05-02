@@ -204,7 +204,6 @@ export default function Results() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-border/50 pb-4 gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-widest text-foreground">{t.results.title}</h1>
-          <p className="text-muted-foreground font-mono mt-1">{t.results.iterations}: {result.simulationIterations.toLocaleString()}</p>
         </div>
         <div className="flex gap-4">
           <Button variant="outline" onClick={() => setLocation("/")} className="border-primary/50 text-primary hover:bg-primary/10">
