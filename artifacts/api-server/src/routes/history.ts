@@ -29,6 +29,8 @@ router.get("/history", async (req, res): Promise<void> => {
     betConfidence: e.betConfidence ?? undefined,
     weather: e.weather ?? undefined,
     referee: e.referee ?? undefined,
+    fullResult: e.fullResult ?? undefined,
+    inputData: e.inputData ?? undefined,
     createdAt: e.createdAt.toISOString(),
   }));
 

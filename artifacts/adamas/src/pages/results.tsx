@@ -45,6 +45,8 @@ export default function Results() {
           betConfidence: result.betRecommendations[0]?.confidence,
           weather: input.weather,
           referee: input.referee.name,
+          fullResult: JSON.stringify(result),
+          inputData: JSON.stringify(input),
         }
       });
       toast({ title: t.results.saved, description: t.results.savedDesc });
@@ -59,7 +61,7 @@ export default function Results() {
     { name: t.results.awayWin, value: parseFloat((result.awayTeam.winProbability * 100).toFixed(1)), color: "hsl(0, 100%, 55%)" },
   ];
 
-  const scorelinesData = result.topScorelines.slice(0, 6).map(s => ({
+  const scorelinesData = result.topScorelines.slice(0, 10).map(s => ({
     name: `${s.home}-${s.away}`,
     prob: parseFloat((s.probability * 100).toFixed(1)),
   }));
@@ -320,11 +322,11 @@ export default function Results() {
         <Card className="bg-card/50 border-border/50 glow-border">
           <CardHeader><CardTitle className="tracking-widest text-sm">{t.results.probableScorelines}</CardTitle></CardHeader>
           <CardContent>
-            <div className="h-52">
+            <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={scorelinesData} layout="vertical" margin={{ top: 0, right: 30, left: 30, bottom: 0 }}>
                   <XAxis type="number" hide />
-                  <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 13, fontFamily: 'monospace', fontWeight: 'bold' }} width={40} />
+                  <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12, fontFamily: 'monospace', fontWeight: 'bold' }} width={40} />
                   <Tooltip formatter={(val: number) => [`${val.toFixed(1)}%`, t.results.probability]} contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', fontFamily: 'monospace' }} />
                   <Bar dataKey="prob" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
                 </BarChart>

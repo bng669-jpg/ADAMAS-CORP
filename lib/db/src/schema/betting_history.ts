@@ -20,6 +20,8 @@ export const bettingHistoryTable = pgTable("betting_history", {
   weather: text("weather"),
   referee: text("referee"),
   notes: text("notes"),
+  fullResult: text("full_result"),
+  inputData: text("input_data"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

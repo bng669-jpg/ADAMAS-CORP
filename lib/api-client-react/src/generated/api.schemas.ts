@@ -210,6 +210,8 @@ export interface HistoryEntry {
   weather?: string;
   referee?: string;
   notes?: string | null;
+  fullResult?: string | null;
+  inputData?: string | null;
   createdAt: string;
 }
 
@@ -234,6 +236,8 @@ export interface SaveHistoryInput {
   weather?: string;
   referee?: string;
   notes?: string;
+  fullResult?: string;
+  inputData?: string;
 }
 
 export interface GetBettingHistoryResponse {

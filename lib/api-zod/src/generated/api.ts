@@ -251,6 +251,8 @@ export const GetBettingHistoryResponse = zod.object({
       weather: zod.string().optional(),
       referee: zod.string().optional(),
       notes: zod.string().nullish(),
+      fullResult: zod.string().nullish(),
+      inputData: zod.string().nullish(),
       createdAt: zod.string(),
     }),
   ),
@@ -277,6 +279,8 @@ export const SaveBettingHistoryBody = zod.object({
   weather: zod.string().optional(),
   referee: zod.string().optional(),
   notes: zod.string().optional(),
+  fullResult: zod.string().optional(),
+  inputData: zod.string().optional(),
 });
 
 /**

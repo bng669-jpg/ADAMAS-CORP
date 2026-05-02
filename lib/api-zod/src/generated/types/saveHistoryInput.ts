@@ -23,4 +23,6 @@ export interface SaveHistoryInput {
   weather?: string;
   referee?: string;
   notes?: string;
+  fullResult?: string;
+  inputData?: string;
 }

@@ -24,5 +24,7 @@ export interface HistoryEntry {
   weather?: string;
   referee?: string;
   notes?: string | null;
+  fullResult?: string | null;
+  inputData?: string | null;
   createdAt: string;
 }

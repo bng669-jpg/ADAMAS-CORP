@@ -320,7 +320,7 @@ export function runMonteCarlo(input: SimulationInput): SimulationResult {
       return { home: h, away: a, probability: count / ITERATIONS };
     })
     .sort((a, b) => b.probability - a.probability)
-    .slice(0, 8);
+    .slice(0, 10);
 
   const homeFormAdv = getFormationAdvantage(homeTeam.formation, awayTeam.formation);
   const awayFormAdv = 1 - homeFormAdv;
@@ -414,130 +414,153 @@ function generateCategorizedBets(
   const recs: BetRecommendation[] = [];
   const expectedTotal = homeGoals + awayGoals;
 
-  // ── GOALS: 3 bets (bajo / medio / alto riesgo) ──
-  // LOW: Over/Under 2.5 — mercado más líquido
-  const goals25 = over25 >= 0.5 ? over25 : 1 - over25;
-  const goals25label = over25 >= 0.5 ? `Más de 2.5 Goles` : `Menos de 2.5 Goles`;
+  // Clamp helpers — risk calibration:
+  // Low  risk:  55–70%  (green)
+  // Med  risk:  45–55%  (yellow)
+  // High risk:  30–45%  (red)
+  const clampLow  = (v: number) => parseFloat(Math.min(70, Math.max(55, v)).toFixed(1));
+  const clampMed  = (v: number) => parseFloat(Math.min(55, Math.max(45, v)).toFixed(1));
+  const clampHigh = (v: number) => parseFloat(Math.min(45, Math.max(30, v)).toFixed(1));
+
+  // ── GOALS: 3 bets ──
+  const g25raw = Math.max(over25, 1 - over25) * 100;
+  const g25conf = clampLow(g25raw);
+  const g25label = over25 >= 0.5 ? `Más de 2.5 Goles` : `Menos de 2.5 Goles`;
   recs.push({
-    recommendation: `${goals25label} — ${(goals25 * 100).toFixed(1)}%`,
+    recommendation: `${g25label} — ${g25conf}%`,
     market: "GOALS",
-    confidence: parseFloat((goals25 * 100).toFixed(1)),
+    confidence: g25conf,
     risk: "low",
-    reasoning: `xG total esperado: ${expectedTotal.toFixed(2)}. El ${(goals25 * 100).toFixed(1)}% de las 10,000 simulaciones dan "${goals25label}". Umbral 2.5: mercado de mayor liquidez y menor varianza.`,
+    reasoning: `xG total esperado: ${expectedTotal.toFixed(2)}. El ${g25raw.toFixed(1)}% de las 10,000 simulaciones dan "${g25label}". Umbral 2.5: mercado de mayor liquidez y menor varianza. Confianza calibrada al rango de bajo riesgo.`,
   });
-  // MEDIUM: Over/Under 3.5 — mayor selectividad
-  const goals35 = over35 >= 0.5 ? over35 : 1 - over35;
-  const goals35label = over35 >= 0.5 ? `Más de 3.5 Goles` : `Menos de 3.5 Goles`;
+
+  const g35raw = Math.max(over35, 1 - over35) * 100;
+  const g35conf = clampMed(g35raw);
+  const g35label = over35 >= 0.5 ? `Más de 3.5 Goles` : `Menos de 3.5 Goles`;
   recs.push({
-    recommendation: `${goals35label} — ${(goals35 * 100).toFixed(1)}%`,
+    recommendation: `${g35label} — ${g35conf}%`,
     market: "GOALS",
-    confidence: parseFloat((goals35 * 100).toFixed(1)),
+    confidence: g35conf,
     risk: "medium",
-    reasoning: `Umbral 3.5: más selectivo, mayor cuota. xG simulado: ${expectedTotal.toFixed(2)} goles. La distribución de Poisson indica ${(goals35 * 100).toFixed(1)}% de probabilidad. Adecuado para apuestas con mayor retorno potencial.`,
+    reasoning: `Umbral 3.5: más selectivo, mayor cuota. xG simulado: ${expectedTotal.toFixed(2)} goles. Probabilidad real del modelo: ${g35raw.toFixed(1)}%. Confianza ajustada al rango de riesgo medio — cuota superior a la anterior.`,
   });
-  // HIGH: BTTS — ambos equipos marcan
-  const bttsConf = btts >= 0.5 ? btts : 1 - btts;
+
+  // BTTS siempre medium o high (nunca low — ambos equipos deben anotar)
+  const bttsRaw = Math.max(btts, 1 - btts) * 100;
   const bttsLabel = btts >= 0.5 ? `Ambos Equipos Marcan (Sí)` : `Ambos Equipos Marcan (No)`;
+  const bttsRisk = bttsRaw >= 50 ? "medium" : "high";
+  const bttsConf = bttsRisk === "medium" ? clampMed(bttsRaw) : clampHigh(bttsRaw);
   recs.push({
-    recommendation: `${bttsLabel} — ${(bttsConf * 100).toFixed(1)}%`,
+    recommendation: `${bttsLabel} — ${bttsConf}%`,
     market: "GOALS",
-    confidence: parseFloat((bttsConf * 100).toFixed(1)),
-    risk: "high",
-    reasoning: `BTTS requiere que ambos equipos conviertan al menos 1 gol. xG Local: ${homeGoals.toFixed(2)}, xG Visitante: ${awayGoals.toFixed(2)}. Probabilidad Bayesiana: ${(bttsConf * 100).toFixed(1)}%. Mercado de alto riesgo, cuota elevada.`,
+    confidence: bttsConf,
+    risk: bttsRisk,
+    reasoning: `BTTS requiere que ambos equipos conviertan. xG Local: ${homeGoals.toFixed(2)}, xG Visitante: ${awayGoals.toFixed(2)}. Probabilidad Bayesiana real: ${bttsRaw.toFixed(1)}%. Clasificado como ${bttsRisk === "medium" ? "riesgo medio" : "riesgo alto"} — cuota elevada recomendada.`,
   });
 
   // ── AMARILLAS: 3 bets ──
-  // LOW: Over/Under 3.5
-  const y35c = Math.min(85, 50 + Math.abs(totalYellow - 3.5) * 10);
+  const y35raw = Math.min(85, 50 + Math.abs(totalYellow - 3.5) * 12);
+  const y35conf = clampLow(y35raw);
   const y35label = totalYellow >= 3.5 ? `Más de 3.5 Amarillas` : `Menos de 3.5 Amarillas`;
   recs.push({
-    recommendation: `${y35label} — ${y35c.toFixed(1)}%`,
+    recommendation: `${y35label} — ${y35conf}%`,
     market: "YELLOW CARDS",
-    confidence: parseFloat(y35c.toFixed(1)),
+    confidence: y35conf,
     risk: "low",
-    reasoning: `Promedio simulado: ${totalYellow.toFixed(1)} amarillas (Local: ${homeYellow.toFixed(1)}, Visitante: ${awayYellow.toFixed(1)}). Umbral 3.5: mercado estándar con mayor liquidez. Árbitro y clima incluidos en el modelo.`,
+    reasoning: `Promedio simulado: ${totalYellow.toFixed(1)} amarillas (L: ${homeYellow.toFixed(1)}, V: ${awayYellow.toFixed(1)}). Umbral 3.5: mercado estándar. Probabilidad bruta: ${y35raw.toFixed(1)}%. Calibrado a rango de bajo riesgo.`,
   });
-  // MEDIUM: Over/Under 2.5
-  const y25c = Math.min(80, 50 + Math.abs(totalYellow - 2.5) * 10);
+
+  const y25raw = Math.min(75, 48 + Math.abs(totalYellow - 2.5) * 8);
+  const y25conf = clampMed(y25raw);
   const y25label = totalYellow >= 2.5 ? `Más de 2.5 Amarillas` : `Menos de 2.5 Amarillas`;
   recs.push({
-    recommendation: `${y25label} — ${y25c.toFixed(1)}%`,
+    recommendation: `${y25label} — ${y25conf}%`,
     market: "YELLOW CARDS",
-    confidence: parseFloat(y25c.toFixed(1)),
+    confidence: y25conf,
     risk: "medium",
-    reasoning: `Umbral 2.5 — cuota intermedia. Promedio simulado: ${totalYellow.toFixed(1)} amarillas. La severidad del árbitro y la presión táctica elevan la probabilidad de tarjetas en el segundo tiempo.`,
+    reasoning: `Umbral 2.5 — cuota intermedia. Promedio simulado: ${totalYellow.toFixed(1)} amarillas. Probabilidad bruta: ${y25raw.toFixed(1)}%. Árbitro y presión táctica considerados.`,
   });
-  // HIGH: Over/Under 5.5 — apuesta extrema
-  const y55c = Math.min(78, 45 + Math.abs(totalYellow - 5.5) * 8);
+
+  const y55raw = Math.min(55, 30 + Math.abs(totalYellow - 5.5) * 5);
+  const y55conf = clampHigh(y55raw);
   const y55label = totalYellow >= 5.5 ? `Más de 5.5 Amarillas` : `Menos de 5.5 Amarillas`;
   recs.push({
-    recommendation: `${y55label} — ${y55c.toFixed(1)}%`,
+    recommendation: `${y55label} — ${y55conf}%`,
     market: "YELLOW CARDS",
-    confidence: parseFloat(y55c.toFixed(1)),
+    confidence: y55conf,
     risk: "high",
-    reasoning: `Umbral extremo 5.5: cuota alta, menor frecuencia. El modelo Gaussiano muestra que el ${y55c.toFixed(1)}% de las simulaciones encajan con este resultado. Riesgo elevado, retorno elevado.`,
+    reasoning: `Umbral extremo 5.5: cuota alta, baja frecuencia. Probabilidad bruta: ${y55raw.toFixed(1)}%. Alto riesgo — solo recomendable si la cuota ofrecida supera 3.0.`,
   });
 
   // ── CORNERS: 3 bets ──
-  const co85c = Math.round(cornersO85 * 100);
+  const co85raw = Math.max(cornersO85, 1 - cornersO85) * 100;
+  const co85conf = clampLow(co85raw);
   const co85label = cornersO85 >= 0.5 ? `Más de 8.5 Corners` : `Menos de 8.5 Corners`;
-  const co85conf = cornersO85 >= 0.5 ? co85c : 100 - co85c;
   recs.push({
     recommendation: `${co85label} — ${co85conf}%`,
     market: "CORNERS",
     confidence: co85conf,
     risk: "low",
-    reasoning: `Promedio simulado: ${totalCorners.toFixed(1)} corners (Local: ${homeCorners.toFixed(1)}, Visitante: ${awayCorners.toFixed(1)}). Umbral 8.5: ${co85conf}% de las simulaciones lo cumplen. Mercado de referencia con buena liquidez.`,
+    reasoning: `Promedio simulado: ${totalCorners.toFixed(1)} corners (L: ${homeCorners.toFixed(1)}, V: ${awayCorners.toFixed(1)}). Probabilidad bruta: ${co85raw.toFixed(1)}%. Umbral 8.5: mercado de referencia con mayor liquidez.`,
   });
-  const co105c = Math.round(cornersO105 * 100);
+
+  const co105raw = Math.max(cornersO105, 1 - cornersO105) * 100;
+  const co105conf = clampMed(co105raw);
   const co105label = cornersO105 >= 0.5 ? `Más de 10.5 Corners` : `Menos de 10.5 Corners`;
-  const co105conf = cornersO105 >= 0.5 ? co105c : 100 - co105c;
   recs.push({
     recommendation: `${co105label} — ${co105conf}%`,
     market: "CORNERS",
     confidence: co105conf,
     risk: "medium",
-    reasoning: `Umbral 10.5: Más exigente, mayor cuota potencial. El modelo simuló ${totalCorners.toFixed(1)} corners de media. El ${co105conf}% de iteraciones superan este umbral. Adecuado para apuestas con retorno moderado.`,
+    reasoning: `Umbral 10.5: más exigente, mayor cuota. Probabilidad bruta: ${co105raw.toFixed(1)}%. El modelo simuló ${totalCorners.toFixed(1)} corners de media.`,
   });
-  const co125c = Math.min(75, Math.max(35, Math.round(cornersO105 * 65)));
+
+  const co125raw = Math.min(48, Math.max(28, cornersO105 * 60));
+  const co125conf = clampHigh(co125raw);
   const co125label = totalCorners >= 12.5 ? `Más de 12.5 Corners` : `Menos de 12.5 Corners`;
   recs.push({
-    recommendation: `${co125label} — ${co125c}%`,
+    recommendation: `${co125label} — ${co125conf}%`,
     market: "CORNERS",
-    confidence: co125c,
+    confidence: co125conf,
     risk: "high",
-    reasoning: `Umbral extremo 12.5: cuota alta, menor frecuencia estadística. Solo partidos muy abiertos superan este umbral. El modelo Gaussiano asigna ${co125c}% de probabilidad basado en el perfil táctico de ambos equipos.`,
+    reasoning: `Umbral extremo 12.5: solo partidos muy abiertos. Probabilidad bruta estimada: ${co125raw.toFixed(1)}%. Alto riesgo — cuota elevada esperada.`,
   });
 
   // ── TIROS A PUERTA: 3 bets ──
   const favoredName = homeWin > awayWin ? homeTeam.name : awayTeam.name;
   const favoredShots = homeWin > awayWin ? homeShots : awayShots;
-  const s85c = Math.min(82, 50 + Math.abs(totalShots - 8.5) * 4);
+
+  const s85raw = Math.min(78, 50 + Math.abs(totalShots - 8.5) * 4);
+  const s85conf = clampLow(s85raw);
   const s85label = totalShots >= 8.5 ? `Más de 8.5 Tiros a Puerta` : `Menos de 8.5 Tiros a Puerta`;
   recs.push({
-    recommendation: `${s85label} — ${s85c.toFixed(0)}%`,
+    recommendation: `${s85label} — ${s85conf}%`,
     market: "SHOTS ON TARGET",
-    confidence: parseFloat(s85c.toFixed(1)),
+    confidence: s85conf,
     risk: "low",
-    reasoning: `Promedio simulado: ${totalShots.toFixed(1)} tiros a puerta (Local: ${homeShots.toFixed(1)}, Visitante: ${awayShots.toFixed(1)}). Umbral 8.5: mercado más frecuente en el segmento de tiros. Modelo de Poisson confirma presión ofensiva.`,
+    reasoning: `Promedio simulado: ${totalShots.toFixed(1)} tiros (L: ${homeShots.toFixed(1)}, V: ${awayShots.toFixed(1)}). Probabilidad bruta: ${s85raw.toFixed(1)}%. Umbral 8.5: mercado más frecuente en tiros a puerta.`,
   });
-  const s105c = Math.min(78, 45 + Math.abs(totalShots - 10.5) * 4);
+
+  const s105raw = Math.min(62, 42 + Math.abs(totalShots - 10.5) * 3);
+  const s105conf = clampMed(s105raw);
   const s105label = totalShots >= 10.5 ? `Más de 10.5 Tiros a Puerta` : `Menos de 10.5 Tiros a Puerta`;
   recs.push({
-    recommendation: `${s105label} — ${s105c.toFixed(0)}%`,
+    recommendation: `${s105label} — ${s105conf}%`,
     market: "SHOTS ON TARGET",
-    confidence: parseFloat(s105c.toFixed(1)),
+    confidence: s105conf,
     risk: "medium",
-    reasoning: `Umbral 10.5: más exigente, cuota superior. ${favoredName} proyecta ${favoredShots.toFixed(1)} tiros como equipo dominante. La Inferencia Bayesiana sitúa esta probabilidad en el ${s105c.toFixed(0)}%.`,
+    reasoning: `Umbral 10.5: ${favoredName} proyecta ${favoredShots.toFixed(1)} tiros. Probabilidad bruta: ${s105raw.toFixed(1)}%. Cuota superior — riesgo medio.`,
   });
-  const s125c = Math.min(72, 40 + Math.abs(totalShots - 12.5) * 3);
+
+  const s125raw = Math.min(46, 28 + Math.abs(totalShots - 12.5) * 2.5);
+  const s125conf = clampHigh(s125raw);
   const s125label = totalShots >= 12.5 ? `Más de 12.5 Tiros a Puerta` : `Menos de 12.5 Tiros a Puerta`;
   recs.push({
-    recommendation: `${s125label} — ${s125c.toFixed(0)}%`,
+    recommendation: `${s125label} — ${s125conf}%`,
     market: "SHOTS ON TARGET",
-    confidence: parseFloat(s125c.toFixed(1)),
+    confidence: s125conf,
     risk: "high",
-    reasoning: `Umbral extremo 12.5: requiere partido muy abierto. La distribución Gaussiana de tiros indica ${s125c.toFixed(0)}% de probabilidad. Alto riesgo — solo para apuestas con cuota muy elevada y bankroll controlado.`,
+    reasoning: `Umbral extremo 12.5: requiere partido muy abierto. Probabilidad bruta: ${s125raw.toFixed(1)}%. Alto riesgo — solo si cuota ≥ 3.5.`,
   });
 
   return recs;

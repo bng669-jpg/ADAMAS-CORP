@@ -530,6 +530,12 @@ components:
         notes:
           type: string
           nullable: true
+        fullResult:
+          type: string
+          nullable: true
+        inputData:
+          type: string
+          nullable: true
         createdAt:
           type: string
 
@@ -583,6 +589,10 @@ components:
         referee:
           type: string
         notes:
+          type: string
+        fullResult:
+          type: string
+        inputData:
           type: string
 
     GetBettingHistoryResponse:
