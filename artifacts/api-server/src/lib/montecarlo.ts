@@ -10,6 +10,15 @@
  * - Multivariable regression: combining multiple input factors
  */
 
+import {
+  DEFAULT_TEMPERATURE,
+  makeCalibrationMetadata,
+  redistributeScorelines,
+  temperatureScale,
+  type CalibrationMetadata,
+  type OneXTwoProbabilities,
+} from "./calibration.js";
+
 export interface TeamInput {
   name: string;
   xgFor: number;
@@ -38,6 +47,8 @@ export interface SimulationInput {
   awayTeam: TeamInput;
   referee: RefereeInput;
   weather: WeatherType;
+  calibrationEnabled?: boolean;
+  temperature?: number;
 }
 
 export interface DistributionBucket {
@@ -57,6 +68,9 @@ export interface SimulationResult {
   homeTeam: TeamSimResult;
   awayTeam: TeamSimResult;
   drawProbability: number;
+  rawOneXTwo: OneXTwoProbabilities;
+  calibratedOneXTwo: OneXTwoProbabilities;
+  calibration: CalibrationMetadata;
   expectedTotalGoals: number;
   goalsMarket: GoalsMarket;
   topScorelines: ScorelineProbability[];
@@ -555,9 +569,21 @@ export function runMonteCarlo(input: SimulationInput): SimulationResult {
     scorelineMap.set(key, (scorelineMap.get(key) ?? 0) + 1);
   }
 
-  const homeWinProb = homeWins / ITERATIONS;
-  const awayWinProb = awayWins / ITERATIONS;
-  const drawProb = draws / ITERATIONS;
+  const rawOneXTwo: OneXTwoProbabilities = {
+    home: homeWins / ITERATIONS,
+    draw: draws / ITERATIONS,
+    away: awayWins / ITERATIONS,
+  };
+  const temperature =
+    Number.isFinite(input.temperature) && (input.temperature ?? 0) > 0
+      ? input.temperature!
+      : DEFAULT_TEMPERATURE;
+  const calibratedOneXTwo = temperatureScale(rawOneXTwo, temperature);
+  const calibrationEnabled = input.calibrationEnabled !== false;
+  const finalOneXTwo = calibrationEnabled ? calibratedOneXTwo : rawOneXTwo;
+  const homeWinProb = finalOneXTwo.home;
+  const awayWinProb = finalOneXTwo.away;
+  const drawProb = finalOneXTwo.draw;
 
   const avgHomeGoals = totalHomeGoals / ITERATIONS;
   const avgAwayGoals = totalAwayGoals / ITERATIONS;
@@ -603,13 +629,34 @@ export function runMonteCarlo(input: SimulationInput): SimulationResult {
     return result.filter((b) => b.count > 0);
   };
 
-  const topScorelines = Array.from(scorelineMap.entries())
+  const allScorelines = Array.from(scorelineMap.entries())
     .map(([key, count]) => {
       const [h, a] = key.split("-").map(Number);
       return { home: h, away: a, probability: count / ITERATIONS };
-    })
+    });
+  const calibratedScorelines = redistributeScorelines(
+    allScorelines,
+    rawOneXTwo,
+    calibrationEnabled ? calibratedOneXTwo : rawOneXTwo,
+  );
+  const rawTopScorelines = allScorelines
+    .slice()
     .sort((a, b) => b.probability - a.probability)
     .slice(0, 10);
+  const topScorelineKeys = new Set(
+    rawTopScorelines.map((scoreline) => `${scoreline.home}-${scoreline.away}`),
+  );
+  const topScorelines = calibratedScorelines
+    .filter((scoreline) => topScorelineKeys.has(`${scoreline.home}-${scoreline.away}`))
+    .sort((a, b) => {
+      const aIndex = rawTopScorelines.findIndex(
+        (scoreline) => scoreline.home === a.home && scoreline.away === a.away,
+      );
+      const bIndex = rawTopScorelines.findIndex(
+        (scoreline) => scoreline.home === b.home && scoreline.away === b.away,
+      );
+      return aIndex - bIndex;
+    });
 
   const homeFormAdv = getFormationAdvantage(
     homeTeam.formation,
@@ -669,6 +716,9 @@ export function runMonteCarlo(input: SimulationInput): SimulationResult {
       avgCorners: avgAwayCorners,
     },
     drawProbability: drawProb,
+    rawOneXTwo,
+    calibratedOneXTwo,
+    calibration: makeCalibrationMetadata(calibrationEnabled, temperature),
     expectedTotalGoals: avgHomeGoals + avgAwayGoals,
     goalsMarket: {
       over25,

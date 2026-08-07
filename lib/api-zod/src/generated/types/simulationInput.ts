@@ -14,4 +14,12 @@ export interface SimulationInput {
   awayTeam: TeamInput;
   referee: RefereeInput;
   weather: SimulationInputWeather;
+  /** Apply the optional 1X2 temperature-scaling layer after simulation */
+  calibrationEnabled?: boolean;
+  /**
+   * Temperature-scaling parameter; values above 1 reduce overconfidence
+   * @minimum 0.1
+   * @maximum 5
+   */
+  temperature?: number;
 }

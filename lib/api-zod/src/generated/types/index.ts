@@ -8,6 +8,8 @@
 
 export * from "./betRecommendation";
 export * from "./betRecommendationRisk";
+export * from "./calibrationMetadata";
+export * from "./calibrationMetadataMethod";
 export * from "./deleteBettingHistoryParams";
 export * from "./deleteResult";
 export * from "./distributionBucket";
@@ -20,6 +22,7 @@ export * from "./getBettingHistoryResponse";
 export * from "./healthStatus";
 export * from "./historyEntry";
 export * from "./historyResponse";
+export * from "./oneXTwoProbabilities";
 export * from "./refereeInput";
 export * from "./refereeInputSeverity";
 export * from "./saveHistoryInput";

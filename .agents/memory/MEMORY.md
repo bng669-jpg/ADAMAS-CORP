@@ -1,0 +1,1 @@
+- [ADAMAS calibration](adamas-calibration.md) — 1X2 calibration is an optional post-simulation layer; the Monte Carlo and scoreline ranking remain unchanged.

@@ -6,6 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { BetRecommendation } from "./betRecommendation";
+import type { CalibrationMetadata } from "./calibrationMetadata";
+import type { OneXTwoProbabilities } from "./oneXTwoProbabilities";
 import type { ScorelineProbability } from "./scorelineProbability";
 import type { SimulationResultFormationAdvantage } from "./simulationResultFormationAdvantage";
 import type { SimulationResultGoalsMarket } from "./simulationResultGoalsMarket";
@@ -16,6 +18,9 @@ export interface SimulationResult {
   homeTeam: TeamSimResult;
   awayTeam: TeamSimResult;
   drawProbability: number;
+  rawOneXTwo: OneXTwoProbabilities;
+  calibratedOneXTwo: OneXTwoProbabilities;
+  calibration: CalibrationMetadata;
   expectedTotalGoals: number;
   goalsMarket: SimulationResultGoalsMarket;
   topScorelines: ScorelineProbability[];

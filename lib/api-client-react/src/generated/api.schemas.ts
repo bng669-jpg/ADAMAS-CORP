@@ -72,6 +72,14 @@ export interface SimulationInput {
   awayTeam: TeamInput;
   referee: RefereeInput;
   weather: SimulationInputWeather;
+  /** Apply the optional 1X2 temperature-scaling layer after simulation */
+  calibrationEnabled?: boolean;
+  /**
+   * Temperature-scaling parameter; values above 1 reduce overconfidence
+   * @minimum 0.1
+   * @maximum 5
+   */
+  temperature?: number;
 }
 
 export interface ScorelineProbability {
@@ -86,6 +94,26 @@ export interface TeamSimResult {
   avgShotsOnTarget: number;
   avgYellowCards: number;
   avgCorners: number;
+}
+
+export interface OneXTwoProbabilities {
+  home: number;
+  draw: number;
+  away: number;
+}
+
+export type CalibrationMetadataMethod =
+  (typeof CalibrationMetadataMethod)[keyof typeof CalibrationMetadataMethod];
+
+export const CalibrationMetadataMethod = {
+  "temperature-scaling": "temperature-scaling",
+} as const;
+
+export interface CalibrationMetadata {
+  enabled: boolean;
+  method: CalibrationMetadataMethod;
+  temperature: number;
+  description: string;
 }
 
 export interface DistributionBucket {
@@ -143,6 +171,9 @@ export interface SimulationResult {
   homeTeam: TeamSimResult;
   awayTeam: TeamSimResult;
   drawProbability: number;
+  rawOneXTwo: OneXTwoProbabilities;
+  calibratedOneXTwo: OneXTwoProbabilities;
+  calibration: CalibrationMetadata;
   expectedTotalGoals: number;
   goalsMarket: SimulationResultGoalsMarket;
   topScorelines: ScorelineProbability[];

@@ -224,6 +224,16 @@ components:
         weather:
           type: string
           enum: [clear, rain, wind, snow, extreme_heat]
+        calibrationEnabled:
+          type: boolean
+          default: true
+          description: Apply the optional 1X2 temperature-scaling layer after simulation
+        temperature:
+          type: number
+          minimum: 0.1
+          maximum: 5
+          default: 1.35
+          description: Temperature-scaling parameter; values above 1 reduce overconfidence
 
     ScorelineProbability:
       type: object
@@ -258,6 +268,31 @@ components:
           type: number
         avgCorners:
           type: number
+
+    OneXTwoProbabilities:
+      type: object
+      required: [home, draw, away]
+      properties:
+        home:
+          type: number
+        draw:
+          type: number
+        away:
+          type: number
+
+    CalibrationMetadata:
+      type: object
+      required: [enabled, method, temperature, description]
+      properties:
+        enabled:
+          type: boolean
+        method:
+          type: string
+          enum: [temperature-scaling]
+        temperature:
+          type: number
+        description:
+          type: string
 
     DistributionBucket:
       type: object
@@ -332,6 +367,9 @@ components:
         - homeTeam
         - awayTeam
         - drawProbability
+        - rawOneXTwo
+        - calibratedOneXTwo
+        - calibration
         - expectedTotalGoals
         - goalsMarket
         - topScorelines
@@ -349,6 +387,12 @@ components:
           $ref: "#/components/schemas/TeamSimResult"
         drawProbability:
           type: number
+        rawOneXTwo:
+          $ref: "#/components/schemas/OneXTwoProbabilities"
+        calibratedOneXTwo:
+          $ref: "#/components/schemas/OneXTwoProbabilities"
+        calibration:
+          $ref: "#/components/schemas/CalibrationMetadata"
         expectedTotalGoals:
           type: number
         goalsMarket:

@@ -19,6 +19,11 @@ export const HealthCheckResponse = zod.object({
  * Runs a 10000-iteration Monte Carlo football match simulation
  * @summary Run Monte Carlo simulation
  */
+export const runSimulationBodyCalibrationEnabledDefault = true;
+export const runSimulationBodyTemperatureDefault = 1.35;
+export const runSimulationBodyTemperatureMin = 0.1;
+export const runSimulationBodyTemperatureMax = 5;
+
 export const RunSimulationBody = zod.object({
   homeTeam: zod.object({
     name: zod.string(),
@@ -62,6 +67,20 @@ export const RunSimulationBody = zod.object({
     avgCardsPerMatch: zod.number(),
   }),
   weather: zod.enum(["clear", "rain", "wind", "snow", "extreme_heat"]),
+  calibrationEnabled: zod
+    .boolean()
+    .default(runSimulationBodyCalibrationEnabledDefault)
+    .describe(
+      "Apply the optional 1X2 temperature-scaling layer after simulation",
+    ),
+  temperature: zod
+    .number()
+    .min(runSimulationBodyTemperatureMin)
+    .max(runSimulationBodyTemperatureMax)
+    .default(runSimulationBodyTemperatureDefault)
+    .describe(
+      "Temperature-scaling parameter; values above 1 reduce overconfidence",
+    ),
 });
 
 export const RunSimulationResponse = zod.object({
@@ -80,6 +99,22 @@ export const RunSimulationResponse = zod.object({
     avgCorners: zod.number(),
   }),
   drawProbability: zod.number(),
+  rawOneXTwo: zod.object({
+    home: zod.number(),
+    draw: zod.number(),
+    away: zod.number(),
+  }),
+  calibratedOneXTwo: zod.object({
+    home: zod.number(),
+    draw: zod.number(),
+    away: zod.number(),
+  }),
+  calibration: zod.object({
+    enabled: zod.boolean(),
+    method: zod.enum(["temperature-scaling"]),
+    temperature: zod.number(),
+    description: zod.string(),
+  }),
   expectedTotalGoals: zod.number(),
   goalsMarket: zod.object({
     over25: zod.number(),
