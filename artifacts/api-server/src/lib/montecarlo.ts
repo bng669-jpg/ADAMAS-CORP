@@ -109,19 +109,201 @@ const ITERATIONS = 10000;
 
 // Formation matchup matrix (13 formations — 3-6-1 and 4-6-0 removed)
 export const FORMATION_MATCHUP: Record<string, Record<string, number>> = {
-  "4-3-3":   { "4-3-3":0.50,"4-4-2":0.58,"4-2-3-1":0.47,"3-5-2":0.52,"3-4-3":0.55,"5-3-2":0.45,"4-1-4-1":0.53,"4-5-1":0.56,"4-3-2-1":0.51,"3-4-2-1":0.54,"4-4-1-1":0.57,"4-3-1-2":0.50,"5-4-1":0.60 },
-  "4-4-2":   { "4-3-3":0.42,"4-4-2":0.50,"4-2-3-1":0.48,"3-5-2":0.53,"3-4-3":0.44,"5-3-2":0.50,"4-1-4-1":0.49,"4-5-1":0.55,"4-3-2-1":0.47,"3-4-2-1":0.51,"4-4-1-1":0.52,"4-3-1-2":0.53,"5-4-1":0.57 },
-  "4-2-3-1": { "4-3-3":0.53,"4-4-2":0.52,"4-2-3-1":0.50,"3-5-2":0.55,"3-4-3":0.52,"5-3-2":0.48,"4-1-4-1":0.50,"4-5-1":0.53,"4-3-2-1":0.52,"3-4-2-1":0.53,"4-4-1-1":0.54,"4-3-1-2":0.51,"5-4-1":0.58 },
-  "3-5-2":   { "4-3-3":0.48,"4-4-2":0.47,"4-2-3-1":0.45,"3-5-2":0.50,"3-4-3":0.49,"5-3-2":0.52,"4-1-4-1":0.50,"4-5-1":0.52,"4-3-2-1":0.48,"3-4-2-1":0.50,"4-4-1-1":0.51,"4-3-1-2":0.50,"5-4-1":0.56 },
-  "3-4-3":   { "4-3-3":0.45,"4-4-2":0.56,"4-2-3-1":0.48,"3-5-2":0.51,"3-4-3":0.50,"5-3-2":0.43,"4-1-4-1":0.50,"4-5-1":0.55,"4-3-2-1":0.49,"3-4-2-1":0.52,"4-4-1-1":0.54,"4-3-1-2":0.50,"5-4-1":0.60 },
-  "5-3-2":   { "4-3-3":0.55,"4-4-2":0.50,"4-2-3-1":0.52,"3-5-2":0.48,"3-4-3":0.57,"5-3-2":0.50,"4-1-4-1":0.51,"4-5-1":0.49,"4-3-2-1":0.53,"3-4-2-1":0.50,"4-4-1-1":0.50,"4-3-1-2":0.52,"5-4-1":0.50 },
-  "4-1-4-1": { "4-3-3":0.47,"4-4-2":0.51,"4-2-3-1":0.50,"3-5-2":0.50,"3-4-3":0.50,"5-3-2":0.49,"4-1-4-1":0.50,"4-5-1":0.52,"4-3-2-1":0.50,"3-4-2-1":0.51,"4-4-1-1":0.52,"4-3-1-2":0.49,"5-4-1":0.56 },
-  "4-5-1":   { "4-3-3":0.44,"4-4-2":0.45,"4-2-3-1":0.47,"3-5-2":0.48,"3-4-3":0.45,"5-3-2":0.51,"4-1-4-1":0.48,"4-5-1":0.50,"4-3-2-1":0.47,"3-4-2-1":0.49,"4-4-1-1":0.50,"4-3-1-2":0.48,"5-4-1":0.52 },
-  "4-3-2-1": { "4-3-3":0.49,"4-4-2":0.53,"4-2-3-1":0.48,"3-5-2":0.52,"3-4-3":0.51,"5-3-2":0.47,"4-1-4-1":0.50,"4-5-1":0.53,"4-3-2-1":0.50,"3-4-2-1":0.52,"4-4-1-1":0.53,"4-3-1-2":0.50,"5-4-1":0.57 },
-  "3-4-2-1": { "4-3-3":0.46,"4-4-2":0.49,"4-2-3-1":0.47,"3-5-2":0.50,"3-4-3":0.48,"5-3-2":0.50,"4-1-4-1":0.49,"4-5-1":0.51,"4-3-2-1":0.48,"3-4-2-1":0.50,"4-4-1-1":0.51,"4-3-1-2":0.49,"5-4-1":0.55 },
-  "4-4-1-1": { "4-3-3":0.43,"4-4-2":0.48,"4-2-3-1":0.46,"3-5-2":0.49,"3-4-3":0.46,"5-3-2":0.50,"4-1-4-1":0.48,"4-5-1":0.50,"4-3-2-1":0.47,"3-4-2-1":0.49,"4-4-1-1":0.50,"4-3-1-2":0.48,"5-4-1":0.53 },
-  "4-3-1-2": { "4-3-3":0.50,"4-4-2":0.47,"4-2-3-1":0.49,"3-5-2":0.50,"3-4-3":0.50,"5-3-2":0.48,"4-1-4-1":0.51,"4-5-1":0.52,"4-3-2-1":0.50,"3-4-2-1":0.51,"4-4-1-1":0.52,"4-3-1-2":0.50,"5-4-1":0.55 },
-  "5-4-1":   { "4-3-3":0.40,"4-4-2":0.43,"4-2-3-1":0.42,"3-5-2":0.44,"3-4-3":0.40,"5-3-2":0.50,"4-1-4-1":0.44,"4-5-1":0.48,"4-3-2-1":0.43,"3-4-2-1":0.45,"4-4-1-1":0.47,"4-3-1-2":0.45,"5-4-1":0.50 },
+  "4-3-3": {
+    "4-3-3": 0.5,
+    "4-4-2": 0.58,
+    "4-2-3-1": 0.47,
+    "3-5-2": 0.52,
+    "3-4-3": 0.55,
+    "5-3-2": 0.45,
+    "4-1-4-1": 0.53,
+    "4-5-1": 0.56,
+    "4-3-2-1": 0.51,
+    "3-4-2-1": 0.54,
+    "4-4-1-1": 0.57,
+    "4-3-1-2": 0.5,
+    "5-4-1": 0.6,
+  },
+  "4-4-2": {
+    "4-3-3": 0.42,
+    "4-4-2": 0.5,
+    "4-2-3-1": 0.48,
+    "3-5-2": 0.53,
+    "3-4-3": 0.44,
+    "5-3-2": 0.5,
+    "4-1-4-1": 0.49,
+    "4-5-1": 0.55,
+    "4-3-2-1": 0.47,
+    "3-4-2-1": 0.51,
+    "4-4-1-1": 0.52,
+    "4-3-1-2": 0.53,
+    "5-4-1": 0.57,
+  },
+  "4-2-3-1": {
+    "4-3-3": 0.53,
+    "4-4-2": 0.52,
+    "4-2-3-1": 0.5,
+    "3-5-2": 0.55,
+    "3-4-3": 0.52,
+    "5-3-2": 0.48,
+    "4-1-4-1": 0.5,
+    "4-5-1": 0.53,
+    "4-3-2-1": 0.52,
+    "3-4-2-1": 0.53,
+    "4-4-1-1": 0.54,
+    "4-3-1-2": 0.51,
+    "5-4-1": 0.58,
+  },
+  "3-5-2": {
+    "4-3-3": 0.48,
+    "4-4-2": 0.47,
+    "4-2-3-1": 0.45,
+    "3-5-2": 0.5,
+    "3-4-3": 0.49,
+    "5-3-2": 0.52,
+    "4-1-4-1": 0.5,
+    "4-5-1": 0.52,
+    "4-3-2-1": 0.48,
+    "3-4-2-1": 0.5,
+    "4-4-1-1": 0.51,
+    "4-3-1-2": 0.5,
+    "5-4-1": 0.56,
+  },
+  "3-4-3": {
+    "4-3-3": 0.45,
+    "4-4-2": 0.56,
+    "4-2-3-1": 0.48,
+    "3-5-2": 0.51,
+    "3-4-3": 0.5,
+    "5-3-2": 0.43,
+    "4-1-4-1": 0.5,
+    "4-5-1": 0.55,
+    "4-3-2-1": 0.49,
+    "3-4-2-1": 0.52,
+    "4-4-1-1": 0.54,
+    "4-3-1-2": 0.5,
+    "5-4-1": 0.6,
+  },
+  "5-3-2": {
+    "4-3-3": 0.55,
+    "4-4-2": 0.5,
+    "4-2-3-1": 0.52,
+    "3-5-2": 0.48,
+    "3-4-3": 0.57,
+    "5-3-2": 0.5,
+    "4-1-4-1": 0.51,
+    "4-5-1": 0.49,
+    "4-3-2-1": 0.53,
+    "3-4-2-1": 0.5,
+    "4-4-1-1": 0.5,
+    "4-3-1-2": 0.52,
+    "5-4-1": 0.5,
+  },
+  "4-1-4-1": {
+    "4-3-3": 0.47,
+    "4-4-2": 0.51,
+    "4-2-3-1": 0.5,
+    "3-5-2": 0.5,
+    "3-4-3": 0.5,
+    "5-3-2": 0.49,
+    "4-1-4-1": 0.5,
+    "4-5-1": 0.52,
+    "4-3-2-1": 0.5,
+    "3-4-2-1": 0.51,
+    "4-4-1-1": 0.52,
+    "4-3-1-2": 0.49,
+    "5-4-1": 0.56,
+  },
+  "4-5-1": {
+    "4-3-3": 0.44,
+    "4-4-2": 0.45,
+    "4-2-3-1": 0.47,
+    "3-5-2": 0.48,
+    "3-4-3": 0.45,
+    "5-3-2": 0.51,
+    "4-1-4-1": 0.48,
+    "4-5-1": 0.5,
+    "4-3-2-1": 0.47,
+    "3-4-2-1": 0.49,
+    "4-4-1-1": 0.5,
+    "4-3-1-2": 0.48,
+    "5-4-1": 0.52,
+  },
+  "4-3-2-1": {
+    "4-3-3": 0.49,
+    "4-4-2": 0.53,
+    "4-2-3-1": 0.48,
+    "3-5-2": 0.52,
+    "3-4-3": 0.51,
+    "5-3-2": 0.47,
+    "4-1-4-1": 0.5,
+    "4-5-1": 0.53,
+    "4-3-2-1": 0.5,
+    "3-4-2-1": 0.52,
+    "4-4-1-1": 0.53,
+    "4-3-1-2": 0.5,
+    "5-4-1": 0.57,
+  },
+  "3-4-2-1": {
+    "4-3-3": 0.46,
+    "4-4-2": 0.49,
+    "4-2-3-1": 0.47,
+    "3-5-2": 0.5,
+    "3-4-3": 0.48,
+    "5-3-2": 0.5,
+    "4-1-4-1": 0.49,
+    "4-5-1": 0.51,
+    "4-3-2-1": 0.48,
+    "3-4-2-1": 0.5,
+    "4-4-1-1": 0.51,
+    "4-3-1-2": 0.49,
+    "5-4-1": 0.55,
+  },
+  "4-4-1-1": {
+    "4-3-3": 0.43,
+    "4-4-2": 0.48,
+    "4-2-3-1": 0.46,
+    "3-5-2": 0.49,
+    "3-4-3": 0.46,
+    "5-3-2": 0.5,
+    "4-1-4-1": 0.48,
+    "4-5-1": 0.5,
+    "4-3-2-1": 0.47,
+    "3-4-2-1": 0.49,
+    "4-4-1-1": 0.5,
+    "4-3-1-2": 0.48,
+    "5-4-1": 0.53,
+  },
+  "4-3-1-2": {
+    "4-3-3": 0.5,
+    "4-4-2": 0.47,
+    "4-2-3-1": 0.49,
+    "3-5-2": 0.5,
+    "3-4-3": 0.5,
+    "5-3-2": 0.48,
+    "4-1-4-1": 0.51,
+    "4-5-1": 0.52,
+    "4-3-2-1": 0.5,
+    "3-4-2-1": 0.51,
+    "4-4-1-1": 0.52,
+    "4-3-1-2": 0.5,
+    "5-4-1": 0.55,
+  },
+  "5-4-1": {
+    "4-3-3": 0.4,
+    "4-4-2": 0.43,
+    "4-2-3-1": 0.42,
+    "3-5-2": 0.44,
+    "3-4-3": 0.4,
+    "5-3-2": 0.5,
+    "4-1-4-1": 0.44,
+    "4-5-1": 0.48,
+    "4-3-2-1": 0.43,
+    "3-4-2-1": 0.45,
+    "4-4-1-1": 0.47,
+    "4-3-1-2": 0.45,
+    "5-4-1": 0.5,
+  },
 };
 
 function poissonRandom(lambda: number): number {
@@ -146,52 +328,86 @@ function gaussianRandom(mean: number, std: number): number {
 
 function colorMultiplier(color: "green" | "yellow" | "red"): number {
   switch (color) {
-    case "green": return 1.10;
-    case "yellow": return 1.00;
-    case "red": return 0.90;
+    case "green":
+      return 1.1;
+    case "yellow":
+      return 1.0;
+    case "red":
+      return 0.9;
   }
 }
 
-function weatherFactor(weather: WeatherType): { goalMult: number; shotMult: number; cardMult: number; cornerMult: number } {
+function weatherFactor(weather: WeatherType): {
+  goalMult: number;
+  shotMult: number;
+  cardMult: number;
+  cornerMult: number;
+} {
   switch (weather) {
-    case "clear":        return { goalMult: 1.00, shotMult: 1.00, cardMult: 1.00, cornerMult: 1.00 };
-    case "rain":         return { goalMult: 0.92, shotMult: 0.90, cardMult: 1.05, cornerMult: 1.08 };
-    case "wind":         return { goalMult: 0.95, shotMult: 0.93, cardMult: 1.03, cornerMult: 1.10 };
-    case "snow":         return { goalMult: 0.85, shotMult: 0.85, cardMult: 1.08, cornerMult: 1.05 };
-    case "extreme_heat": return { goalMult: 0.90, shotMult: 0.88, cardMult: 1.10, cornerMult: 0.95 };
+    case "clear":
+      return { goalMult: 1.0, shotMult: 1.0, cardMult: 1.0, cornerMult: 1.0 };
+    case "rain":
+      return {
+        goalMult: 0.92,
+        shotMult: 0.9,
+        cardMult: 1.05,
+        cornerMult: 1.08,
+      };
+    case "wind":
+      return {
+        goalMult: 0.95,
+        shotMult: 0.93,
+        cardMult: 1.03,
+        cornerMult: 1.1,
+      };
+    case "snow":
+      return {
+        goalMult: 0.85,
+        shotMult: 0.85,
+        cardMult: 1.08,
+        cornerMult: 1.05,
+      };
+    case "extreme_heat":
+      return { goalMult: 0.9, shotMult: 0.88, cardMult: 1.1, cornerMult: 0.95 };
   }
 }
 
 function refereeFactor(severity: "low" | "medium" | "high"): number {
   switch (severity) {
-    case "low":    return 0.85;
-    case "medium": return 1.00;
-    case "high":   return 1.25;
+    case "low":
+      return 0.85;
+    case "medium":
+      return 1.0;
+    case "high":
+      return 1.25;
   }
 }
 
-function getFormationAdvantage(homeFormation: string, awayFormation: string): number {
+function getFormationAdvantage(
+  homeFormation: string,
+  awayFormation: string,
+): number {
   const matrix = FORMATION_MATCHUP[homeFormation];
-  if (!matrix) return 0.50;
-  return matrix[awayFormation] ?? 0.50;
+  if (!matrix) return 0.5;
+  return matrix[awayFormation] ?? 0.5;
 }
 
 function computeEffectiveXG(
   team: TeamInput,
   opponentFormation: string,
   weather: WeatherType,
-  isHome: boolean
+  isHome: boolean,
 ): number {
   const formMult = colorMultiplier(team.color);
   const wx = weatherFactor(weather);
   const shotBasedXG = team.shotsOnTargetFor * 0.33;
-  const combinedXG = (team.xgFor * 0.65 + shotBasedXG * 0.35);
+  const combinedXG = team.xgFor * 0.65 + shotBasedXG * 0.35;
   const injuryAdjusted = combinedXG * team.injuryFactor;
   const formAdv = isHome
     ? getFormationAdvantage(team.formation, opponentFormation)
     : 1 - getFormationAdvantage(opponentFormation, team.formation);
-  const formAdjusted = injuryAdjusted * (0.85 + formAdv * 0.30);
-  const homeBonus = isHome ? 1.07 : 1.00;
+  const formAdjusted = injuryAdjusted * (0.85 + formAdv * 0.3);
+  const homeBonus = isHome ? 1.07 : 1.0;
   return formAdjusted * formMult * wx.goalMult * homeBonus;
 }
 
@@ -201,19 +417,42 @@ export function runMonteCarlo(input: SimulationInput): SimulationResult {
   const wx = weatherFactor(weather);
   const refMult = refereeFactor(referee.severity);
 
-  const homeLambda = computeEffectiveXG(homeTeam, awayTeam.formation, weather, true);
-  const awayLambda = computeEffectiveXG(awayTeam, homeTeam.formation, weather, false);
+  const homeLambda = computeEffectiveXG(
+    homeTeam,
+    awayTeam.formation,
+    weather,
+    true,
+  );
+  const awayLambda = computeEffectiveXG(
+    awayTeam,
+    homeTeam.formation,
+    weather,
+    false,
+  );
 
-  let homeWins = 0, awayWins = 0, draws = 0;
-  let totalHomeGoals = 0, totalAwayGoals = 0;
-  let totalOver25 = 0, totalOver35 = 0, totalBtts = 0;
-  let totalHomeShots = 0, totalAwayShots = 0;
-  let totalHomeYellow = 0, totalAwayYellow = 0;
-  let totalHomeRed = 0, totalAwayRed = 0;
-  let totalHomeCorners = 0, totalAwayCorners = 0;
-  let cornersOver85 = 0, cornersOver105 = 0;
+  let homeWins = 0,
+    awayWins = 0,
+    draws = 0;
+  let totalHomeGoals = 0,
+    totalAwayGoals = 0;
+  let totalOver25 = 0,
+    totalOver35 = 0,
+    totalBtts = 0;
+  let totalHomeShots = 0,
+    totalAwayShots = 0;
+  let totalHomeYellow = 0,
+    totalAwayYellow = 0;
+  let totalHomeRed = 0,
+    totalAwayRed = 0;
+  let totalHomeCorners = 0,
+    totalAwayCorners = 0;
+  let cornersOver85 = 0,
+    cornersOver105 = 0;
   // Yellow card over-threshold counters (for Laplace rule)
-  let yellows_o25 = 0, yellows_o35 = 0, yellows_o45 = 0, yellows_o55 = 0;
+  let yellows_o25 = 0,
+    yellows_o35 = 0,
+    yellows_o45 = 0,
+    yellows_o55 = 0;
 
   // Distribution histograms (value → count)
   const goalsDistMap: Map<number, number> = new Map();
@@ -239,13 +478,23 @@ export function runMonteCarlo(input: SimulationInput): SimulationResult {
     if (total > 3.5) totalOver35++;
     if (homeGoals > 0 && awayGoals > 0) totalBtts++;
 
-    const homeShots = gaussianRandom(homeTeam.shotsOnTargetFor * wx.shotMult, 1.5);
-    const awayShots = gaussianRandom(awayTeam.shotsOnTargetFor * wx.shotMult, 1.5);
+    const homeShots = gaussianRandom(
+      homeTeam.shotsOnTargetFor * wx.shotMult,
+      1.5,
+    );
+    const awayShots = gaussianRandom(
+      awayTeam.shotsOnTargetFor * wx.shotMult,
+      1.5,
+    );
     totalHomeShots += homeShots;
     totalAwayShots += awayShots;
 
-    const homeYellow = poissonRandom(homeTeam.avgYellowCards * refMult * wx.cardMult);
-    const awayYellow = poissonRandom(awayTeam.avgYellowCards * refMult * wx.cardMult);
+    const homeYellow = poissonRandom(
+      homeTeam.avgYellowCards * refMult * wx.cardMult,
+    );
+    const awayYellow = poissonRandom(
+      awayTeam.avgYellowCards * refMult * wx.cardMult,
+    );
     const homeRed = poissonRandom(homeTeam.avgRedCards * refMult);
     const awayRed = poissonRandom(awayTeam.avgRedCards * refMult);
     totalHomeYellow += homeYellow;
@@ -260,8 +509,14 @@ export function runMonteCarlo(input: SimulationInput): SimulationResult {
     if (totalSimYellow > 4) yellows_o45++;
     if (totalSimYellow > 5) yellows_o55++;
 
-    const homeCorners = gaussianRandom(homeTeam.avgCorners * wx.cornerMult, 1.2);
-    const awayCorners = gaussianRandom(awayTeam.avgCorners * wx.cornerMult, 1.2);
+    const homeCorners = gaussianRandom(
+      homeTeam.avgCorners * wx.cornerMult,
+      1.2,
+    );
+    const awayCorners = gaussianRandom(
+      awayTeam.avgCorners * wx.cornerMult,
+      1.2,
+    );
     totalHomeCorners += homeCorners;
     totalAwayCorners += awayCorners;
 
@@ -271,16 +526,28 @@ export function runMonteCarlo(input: SimulationInput): SimulationResult {
 
     // Track distributions
     const totalGoalsBucket = Math.min(homeGoals + awayGoals, 10);
-    goalsDistMap.set(totalGoalsBucket, (goalsDistMap.get(totalGoalsBucket) ?? 0) + 1);
+    goalsDistMap.set(
+      totalGoalsBucket,
+      (goalsDistMap.get(totalGoalsBucket) ?? 0) + 1,
+    );
 
     const totalYellowBucket = Math.min(homeYellow + awayYellow, 10);
-    yellowDistMap.set(totalYellowBucket, (yellowDistMap.get(totalYellowBucket) ?? 0) + 1);
+    yellowDistMap.set(
+      totalYellowBucket,
+      (yellowDistMap.get(totalYellowBucket) ?? 0) + 1,
+    );
 
     const totalCornersBucket = Math.min(Math.round(totalCorners), 18);
-    cornersDistMap.set(totalCornersBucket, (cornersDistMap.get(totalCornersBucket) ?? 0) + 1);
+    cornersDistMap.set(
+      totalCornersBucket,
+      (cornersDistMap.get(totalCornersBucket) ?? 0) + 1,
+    );
 
     const totalShotsBucket = Math.min(Math.round(homeShots + awayShots), 18);
-    shotsDistMap.set(totalShotsBucket, (shotsDistMap.get(totalShotsBucket) ?? 0) + 1);
+    shotsDistMap.set(
+      totalShotsBucket,
+      (shotsDistMap.get(totalShotsBucket) ?? 0) + 1,
+    );
 
     const hg = Math.min(homeGoals, 8);
     const ag = Math.min(awayGoals, 8);
@@ -318,15 +585,22 @@ export function runMonteCarlo(input: SimulationInput): SimulationResult {
   const yellLaplace45 = (yellows_o45 + 1) / (ITERATIONS + 2);
   const yellLaplace55 = (yellows_o55 + 1) / (ITERATIONS + 2);
 
-  const buildDist = (map: Map<number, number>, maxVal: number): DistributionBucket[] => {
+  const buildDist = (
+    map: Map<number, number>,
+    maxVal: number,
+  ): DistributionBucket[] => {
     const result: DistributionBucket[] = [];
     for (let v = 0; v <= maxVal; v++) {
       const count = map.get(v) ?? 0;
       if (count > 0 || v <= maxVal) {
-        result.push({ value: v, count, pct: parseFloat(((count / ITERATIONS) * 100).toFixed(2)) });
+        result.push({
+          value: v,
+          count,
+          pct: parseFloat(((count / ITERATIONS) * 100).toFixed(2)),
+        });
       }
     }
-    return result.filter(b => b.count > 0);
+    return result.filter((b) => b.count > 0);
   };
 
   const topScorelines = Array.from(scorelineMap.entries())
@@ -337,20 +611,46 @@ export function runMonteCarlo(input: SimulationInput): SimulationResult {
     .sort((a, b) => b.probability - a.probability)
     .slice(0, 10);
 
-  const homeFormAdv = getFormationAdvantage(homeTeam.formation, awayTeam.formation);
+  const homeFormAdv = getFormationAdvantage(
+    homeTeam.formation,
+    awayTeam.formation,
+  );
   const awayFormAdv = 1 - homeFormAdv;
-  const formationDescription = buildFormationDescription(homeTeam.formation, awayTeam.formation, homeFormAdv, homeTeam.name, awayTeam.name);
+  const formationDescription = buildFormationDescription(
+    homeTeam.formation,
+    awayTeam.formation,
+    homeFormAdv,
+    homeTeam.name,
+    awayTeam.name,
+  );
 
   // Always produce exactly 4 categorized bet recommendations
   const betRecs = generateCategorizedBets(
-    homeWinProb, awayWinProb, drawProb,
-    avgHomeGoals, avgAwayGoals,
-    over25, over35, btts,
-    avgHomeYellow, avgAwayYellow, totalYellow,
-    yellLaplace25, yellLaplace35, yellLaplace45, yellLaplace55,
-    avgHomeCorners, avgAwayCorners, totalCorners, cornersO85Rate, cornersO105Rate,
-    avgHomeShots, avgAwayShots, totalShots,
-    homeTeam, awayTeam
+    homeWinProb,
+    awayWinProb,
+    drawProb,
+    avgHomeGoals,
+    avgAwayGoals,
+    over25,
+    over35,
+    btts,
+    avgHomeYellow,
+    avgAwayYellow,
+    totalYellow,
+    yellLaplace25,
+    yellLaplace35,
+    yellLaplace45,
+    yellLaplace55,
+    avgHomeCorners,
+    avgAwayCorners,
+    totalCorners,
+    cornersO85Rate,
+    cornersO105Rate,
+    avgHomeShots,
+    avgAwayShots,
+    totalShots,
+    homeTeam,
+    awayTeam,
   );
 
   return {
@@ -397,8 +697,14 @@ export function runMonteCarlo(input: SimulationInput): SimulationResult {
   };
 }
 
-function buildFormationDescription(homeF: string, awayF: string, homeAdv: number, homeName: string, awayName: string): string {
-  const diff = homeAdv - 0.50;
+function buildFormationDescription(
+  homeF: string,
+  awayF: string,
+  homeAdv: number,
+  homeName: string,
+  awayName: string,
+): string {
+  const diff = homeAdv - 0.5;
   if (Math.abs(diff) < 0.03) {
     return `The ${homeF} vs ${awayF} matchup is tactically balanced. Neither formation provides a significant positional advantage.`;
   } else if (diff > 0) {
@@ -418,15 +724,31 @@ function buildFormationDescription(homeF: string, awayF: string, homeAdv: number
  * [3] SHOTS ON TARGET market
  */
 function generateCategorizedBets(
-  homeWin: number, awayWin: number, draw: number,
-  homeGoals: number, awayGoals: number,
-  over25: number, over35: number, btts: number,
-  homeYellow: number, awayYellow: number, totalYellow: number,
-  yellL25: number, yellL35: number, yellL45: number, yellL55: number,
-  homeCorners: number, awayCorners: number, totalCorners: number,
-  cornersO85: number, cornersO105: number,
-  homeShots: number, awayShots: number, totalShots: number,
-  homeTeam: TeamInput, awayTeam: TeamInput
+  homeWin: number,
+  awayWin: number,
+  draw: number,
+  homeGoals: number,
+  awayGoals: number,
+  over25: number,
+  over35: number,
+  btts: number,
+  homeYellow: number,
+  awayYellow: number,
+  totalYellow: number,
+  yellL25: number,
+  yellL35: number,
+  yellL45: number,
+  yellL55: number,
+  homeCorners: number,
+  awayCorners: number,
+  totalCorners: number,
+  cornersO85: number,
+  cornersO105: number,
+  homeShots: number,
+  awayShots: number,
+  totalShots: number,
+  homeTeam: TeamInput,
+  awayTeam: TeamInput,
 ): BetRecommendation[] {
   const recs: BetRecommendation[] = [];
   const expectedTotal = homeGoals + awayGoals;
@@ -435,9 +757,12 @@ function generateCategorizedBets(
   // Low  risk:  55–70%  (green)
   // Med  risk:  45–55%  (yellow)
   // High risk:  30–45%  (red)
-  const clampLow  = (v: number) => parseFloat(Math.min(70, Math.max(55, v)).toFixed(1));
-  const clampMed  = (v: number) => parseFloat(Math.min(55, Math.max(45, v)).toFixed(1));
-  const clampHigh = (v: number) => parseFloat(Math.min(45, Math.max(30, v)).toFixed(1));
+  const clampLow = (v: number) =>
+    parseFloat(Math.min(70, Math.max(55, v)).toFixed(1));
+  const clampMed = (v: number) =>
+    parseFloat(Math.min(55, Math.max(45, v)).toFixed(1));
+  const clampHigh = (v: number) =>
+    parseFloat(Math.min(45, Math.max(30, v)).toFixed(1));
 
   // ── GOALS: 3 bets ──
   const g25raw = Math.max(over25, 1 - over25) * 100;
@@ -464,9 +789,11 @@ function generateCategorizedBets(
 
   // BTTS siempre medium o high (nunca low — ambos equipos deben anotar)
   const bttsRaw = Math.max(btts, 1 - btts) * 100;
-  const bttsLabel = btts >= 0.5 ? `Ambos Equipos Marcan (Sí)` : `Ambos Equipos Marcan (No)`;
+  const bttsLabel =
+    btts >= 0.5 ? `Ambos Equipos Marcan (Sí)` : `Ambos Equipos Marcan (No)`;
   const bttsRisk = bttsRaw >= 50 ? "medium" : "high";
-  const bttsConf = bttsRisk === "medium" ? clampMed(bttsRaw) : clampHigh(bttsRaw);
+  const bttsConf =
+    bttsRisk === "medium" ? clampMed(bttsRaw) : clampHigh(bttsRaw);
   recs.push({
     recommendation: `${bttsLabel} — ${bttsConf}%`,
     market: "GOALS",
@@ -483,12 +810,17 @@ function generateCategorizedBets(
     { thresh: "3.5", lp: yellL35 },
     { thresh: "4.5", lp: yellL45 },
     { thresh: "5.5", lp: yellL55 },
-  ].map(({ thresh, lp }) => ({
-    thresh,
-    lp,
-    side: lp >= 0.5 ? `Más de ${thresh} Amarillas` : `Menos de ${thresh} Amarillas`,
-    conf: Math.max(lp, 1 - lp) * 100,
-  })).sort((a, b) => b.conf - a.conf);
+  ]
+    .map(({ thresh, lp }) => ({
+      thresh,
+      lp,
+      side:
+        lp >= 0.5
+          ? `Más de ${thresh} Amarillas`
+          : `Menos de ${thresh} Amarillas`,
+      conf: Math.max(lp, 1 - lp) * 100,
+    }))
+    .sort((a, b) => b.conf - a.conf);
 
   const [yLow, yMed, yHigh] = yThresholds;
 
@@ -519,7 +851,8 @@ function generateCategorizedBets(
   // ── CORNERS: 3 bets ──
   const co85raw = Math.max(cornersO85, 1 - cornersO85) * 100;
   const co85conf = clampLow(co85raw);
-  const co85label = cornersO85 >= 0.5 ? `Más de 8.5 Corners` : `Menos de 8.5 Corners`;
+  const co85label =
+    cornersO85 >= 0.5 ? `Más de 8.5 Corners` : `Menos de 8.5 Corners`;
   recs.push({
     recommendation: `${co85label} — ${co85conf}%`,
     market: "CORNERS",
@@ -530,7 +863,8 @@ function generateCategorizedBets(
 
   const co105raw = Math.max(cornersO105, 1 - cornersO105) * 100;
   const co105conf = clampMed(co105raw);
-  const co105label = cornersO105 >= 0.5 ? `Más de 10.5 Corners` : `Menos de 10.5 Corners`;
+  const co105label =
+    cornersO105 >= 0.5 ? `Más de 10.5 Corners` : `Menos de 10.5 Corners`;
   recs.push({
     recommendation: `${co105label} — ${co105conf}%`,
     market: "CORNERS",
@@ -541,7 +875,8 @@ function generateCategorizedBets(
 
   const co125raw = Math.min(48, Math.max(28, cornersO105 * 60));
   const co125conf = clampHigh(co125raw);
-  const co125label = totalCorners >= 12.5 ? `Más de 12.5 Corners` : `Menos de 12.5 Corners`;
+  const co125label =
+    totalCorners >= 12.5 ? `Más de 12.5 Corners` : `Menos de 12.5 Corners`;
   recs.push({
     recommendation: `${co125label} — ${co125conf}%`,
     market: "CORNERS",
@@ -556,7 +891,10 @@ function generateCategorizedBets(
 
   const s85raw = Math.min(78, 50 + Math.abs(totalShots - 8.5) * 4);
   const s85conf = clampLow(s85raw);
-  const s85label = totalShots >= 8.5 ? `Más de 8.5 Tiros a Puerta` : `Menos de 8.5 Tiros a Puerta`;
+  const s85label =
+    totalShots >= 8.5
+      ? `Más de 8.5 Tiros a Puerta`
+      : `Menos de 8.5 Tiros a Puerta`;
   recs.push({
     recommendation: `${s85label} — ${s85conf}%`,
     market: "SHOTS ON TARGET",
@@ -567,7 +905,10 @@ function generateCategorizedBets(
 
   const s105raw = Math.min(62, 42 + Math.abs(totalShots - 10.5) * 3);
   const s105conf = clampMed(s105raw);
-  const s105label = totalShots >= 10.5 ? `Más de 10.5 Tiros a Puerta` : `Menos de 10.5 Tiros a Puerta`;
+  const s105label =
+    totalShots >= 10.5
+      ? `Más de 10.5 Tiros a Puerta`
+      : `Menos de 10.5 Tiros a Puerta`;
   recs.push({
     recommendation: `${s105label} — ${s105conf}%`,
     market: "SHOTS ON TARGET",
@@ -578,7 +919,10 @@ function generateCategorizedBets(
 
   const s125raw = Math.min(46, 28 + Math.abs(totalShots - 12.5) * 2.5);
   const s125conf = clampHigh(s125raw);
-  const s125label = totalShots >= 12.5 ? `Más de 12.5 Tiros a Puerta` : `Menos de 12.5 Tiros a Puerta`;
+  const s125label =
+    totalShots >= 12.5
+      ? `Más de 12.5 Tiros a Puerta`
+      : `Menos de 12.5 Tiros a Puerta`;
   recs.push({
     recommendation: `${s125label} — ${s125conf}%`,
     market: "SHOTS ON TARGET",

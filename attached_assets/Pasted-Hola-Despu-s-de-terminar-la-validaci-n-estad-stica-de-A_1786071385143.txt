@@ -1,0 +1,193 @@
+Hola,
+
+Después de terminar la validación estadística de ADAMAS sobre las jornadas analizadas, encontré un patrón muy consistente que creo que puede mejorar significativamente el rendimiento del modelo sin modificar la lógica principal de simulación.
+
+Quiero aclarar desde el inicio que **no considero que el problema esté en el motor de simulación**, sino en la forma en que se interpretan y presentan las probabilidades finales del mercado 1X2.
+
+## Lo que observé
+
+Durante el análisis vimos que:
+
+* El modelo genera escenarios de marcador bastante coherentes.
+* Aproximadamente el 47% de los marcadores reales aparecieron dentro del Top 6.
+* En muchos partidos el marcador correcto ya estaba contemplado por la simulación, pero con una probabilidad demasiado baja.
+* La mayor debilidad apareció en las probabilidades 1X2, especialmente cuando el modelo asignaba probabilidades superiores al 50–55%.
+
+En otras palabras, el simulador parece entender correctamente muchos partidos, pero la distribución final de probabilidades transmite más confianza de la que realmente debería.
+
+No creo que el problema sea futbolístico.
+
+Creo que es un problema de **calibración probabilística**.
+
+---
+
+## Lo que NO quiero modificar
+
+Quisiera mantener exactamente igual todo el motor de simulación.
+
+Es decir, no modificar:
+
+* cálculo de xG;
+* cálculo de lambda;
+* simulación Monte Carlo;
+* distribución de Poisson;
+* factores de clima;
+* factores de localía;
+* lesiones;
+* formación;
+* generación del Top 6;
+* mercados derivados.
+
+Considero que esa parte constituye la base del modelo y, por los resultados obtenidos, sigue siendo válida.
+
+---
+
+## Lo que sí me gustaría implementar
+
+Agregar una etapa adicional después de que la simulación termine.
+
+El flujo sería:
+
+Datos de entrada
+
+↓
+
+Modelo actual
+
+↓
+
+Simulación Monte Carlo
+
+↓
+
+Distribución completa de marcadores
+
+↓
+
+Probabilidades 1X2 (actuales)
+
+↓
+
+**Nueva etapa de calibración**
+
+↓
+
+Probabilidades 1X2 finales
+
+La idea es que la simulación permanezca exactamente igual y únicamente se recalibre la salida probabilística.
+
+---
+
+## Método recomendado
+
+Me gustaría implementar inicialmente un sistema de **Temperature Scaling** para las probabilidades 1X2.
+
+La razón es que este método:
+
+* conserva el orden de las probabilidades;
+* reduce únicamente la sobreconfianza;
+* no altera la lógica interna del modelo;
+* requiere muy pocos parámetros;
+* tiene poco riesgo de sobreajuste.
+
+No busco cambiar quién es favorito.
+
+Busco únicamente que la confianza del modelo sea más realista.
+
+Por ejemplo:
+
+Actualmente:
+
+* Local 61%
+* Empate 21%
+* Visitante 18%
+
+Después de calibrar podría quedar:
+
+* Local 54%
+* Empate 24%
+* Visitante 22%
+
+El favorito sigue siendo el local.
+
+Lo único que cambia es el nivel de confianza.
+
+---
+
+## Mantener coherencia con los marcadores
+
+Este punto es muy importante.
+
+No quiero que el 1X2 calibrado contradiga la distribución de marcadores.
+
+Por ello, después de obtener las nuevas probabilidades del 1X2, propongo redistribuir proporcionalmente la masa de probabilidad dentro de cada grupo.
+
+Ejemplo:
+
+Si originalmente las victorias locales suman 61% y después de calibrar pasan a representar 54%, simplemente multiplicar todos los marcadores de victoria local por el mismo factor:
+
+Factor = 54 / 61
+
+Con esto:
+
+* el orden de los marcadores no cambia;
+* el Top 6 permanece igual;
+* únicamente cambia el peso total asignado a las victorias locales.
+
+Lo mismo debería hacerse para empates y victorias visitantes.
+
+Así el sistema mantiene coherencia matemática entre el mercado 1X2 y la distribución completa de marcadores.
+
+---
+
+## Cómo validar que realmente mejora
+
+La calibración no debería evaluarse únicamente por Accuracy.
+
+Me gustaría comparar la versión actual contra la versión calibrada utilizando:
+
+* Accuracy 1X2.
+* Brier Score.
+* Log Loss.
+* Expected Calibration Error (ECE).
+* Cobertura Top 6.
+* Cobertura Top 3.
+
+La idea es que:
+
+* el Brier disminuya;
+* el Log Loss disminuya;
+* el ECE disminuya;
+* el Top 6 permanezca prácticamente igual.
+
+Si conseguimos eso, significaría que mejoramos la calidad probabilística sin afectar la capacidad predictiva del simulador.
+
+---
+
+## Qué NO quisiera hacer por ahora
+
+Por el momento preferiría no modificar:
+
+* pesos del xG;
+* pesos de tiros a puerta;
+* distribución Poisson;
+* factores de clima;
+* factores de localía.
+
+Creo que todavía no existe evidencia suficiente para justificar cambios estructurales.
+
+La principal evidencia obtenida durante la validación apunta a que el simulador funciona razonablemente bien y que el mayor margen de mejora está en la calibración de las probabilidades finales.
+
+---
+
+## Objetivo de esta modificación
+
+El objetivo no es cambiar el modelo.
+
+El objetivo es que el modelo exprese mejor la incertidumbre que ya existe dentro de la simulación.
+
+En resumen, considero que ADAMAS ya genera escenarios futbolísticamente coherentes. Lo que necesitamos es que las probabilidades finales del mercado 1X2 reflejen con mayor fidelidad esa distribución interna, reduciendo la sobreconfianza observada en la validación y mejorando métricas como Brier Score, Log Loss y calibración, sin perder la calidad actual en la generación de marcadores.
+
+Quedo atento a tus comentarios y, si lo consideras conveniente, podemos implementar esta capa como una etapa independiente y opcional para comparar directamente el desempeño del modelo antes y después de la calibración.
+
+Saludos.
