@@ -1,1 +1,1 @@
-- [ADAMAS calibration](adamas-calibration.md) — 1X2 calibration is an optional post-simulation layer; the Monte Carlo and scoreline ranking remain unchanged.
+- [ADAMAS calibration](adamas-calibration.md) — 1X2 calibration is internal and always active at the fixed 1.30 temperature; Monte Carlo and scoreline ranking remain unchanged.

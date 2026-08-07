@@ -574,12 +574,11 @@ export function runMonteCarlo(input: SimulationInput): SimulationResult {
     draw: draws / ITERATIONS,
     away: awayWins / ITERATIONS,
   };
-  const temperature =
-    Number.isFinite(input.temperature) && (input.temperature ?? 0) > 0
-      ? input.temperature!
-      : DEFAULT_TEMPERATURE;
+  // Calibration is an internal ADAMAS rule: always enabled at the fixed
+  // validated baseline temperature. Client-provided overrides are ignored.
+  const temperature = DEFAULT_TEMPERATURE;
   const calibratedOneXTwo = temperatureScale(rawOneXTwo, temperature);
-  const calibrationEnabled = input.calibrationEnabled !== false;
+  const calibrationEnabled = true;
   const finalOneXTwo = calibrationEnabled ? calibratedOneXTwo : rawOneXTwo;
   const homeWinProb = finalOneXTwo.home;
   const awayWinProb = finalOneXTwo.away;

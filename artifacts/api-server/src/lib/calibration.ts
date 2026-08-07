@@ -17,7 +17,7 @@ export interface ScorelineLike {
   probability: number;
 }
 
-export const DEFAULT_TEMPERATURE = 1.35;
+export const DEFAULT_TEMPERATURE = 1.3;
 
 function normalize(probabilities: OneXTwoProbabilities): OneXTwoProbabilities {
   const total = probabilities.home + probabilities.draw + probabilities.away;

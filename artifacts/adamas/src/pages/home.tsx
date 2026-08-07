@@ -12,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
 import { Sun, CloudRain, Wind, Snowflake, Flame, Activity } from "lucide-react";
 
 const teamSchema = z.object({
@@ -39,8 +38,6 @@ const formSchema = z.object({
     avgCardsPerMatch: z.coerce.number().min(0),
   }),
   weather: z.enum(["clear", "rain", "wind", "snow", "extreme_heat"]),
-  calibrationEnabled: z.boolean(),
-  temperature: z.coerce.number().min(0.1).max(5),
 });
 
 // 13 formations (3-6-1 and 4-6-0 removed)
@@ -91,8 +88,6 @@ export default function Home() {
         avgCardsPerMatch: 4.5,
       },
       weather: "clear",
-      calibrationEnabled: true,
-      temperature: 1.35,
     },
   });
 
@@ -296,7 +291,7 @@ export default function Home() {
 
             <Card className="bg-card/50 backdrop-blur border-border/50 glow-border transition-all">
               <CardHeader><CardTitle className="text-xl tracking-wider">{t.home.environment}</CardTitle></CardHeader>
-              <CardContent className="space-y-5">
+              <CardContent>
                 <FormField control={form.control} name="weather" render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t.home.weather}</FormLabel>
@@ -321,49 +316,6 @@ export default function Home() {
                     </div>
                   </FormItem>
                 )} />
-                <div className="border-t border-border/30 pt-4 space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="calibrationEnabled"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center justify-between gap-4">
-                        <div>
-                          <FormLabel className="text-sm">{t.home.calibration}</FormLabel>
-                          <p className="text-[11px] text-muted-foreground font-mono mt-1 leading-relaxed">
-                            {t.home.calibrationDescription}
-                          </p>
-                        </div>
-                        <FormControl>
-                          <Switch checked={field.value} onCheckedChange={field.onChange} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="temperature"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center justify-between">
-                          <span>{t.home.temperature}</span>
-                          <span className="font-mono text-primary">{Number(field.value).toFixed(2)}</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Slider
-                            min={0.1}
-                            max={3}
-                            step={0.05}
-                            value={[Number(field.value)]}
-                            onValueChange={(value) => field.onChange(value[0])}
-                            disabled={!form.watch("calibrationEnabled")}
-                            className="py-3"
-                          />
-                        </FormControl>
-                        <p className="text-[10px] text-muted-foreground font-mono">{t.home.temperatureHint}</p>
-                      </FormItem>
-                    )}
-                  />
-                </div>
               </CardContent>
             </Card>
           </div>

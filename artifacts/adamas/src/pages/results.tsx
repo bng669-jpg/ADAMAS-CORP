@@ -262,43 +262,6 @@ export default function Results() {
         </Card>
 
         <Card className="bg-card/50 border-border/50 glow-border">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between gap-3">
-              <CardTitle className="tracking-widest text-sm">{t.results.calibrationTitle}</CardTitle>
-              <span className={`text-[10px] font-mono px-2 py-1 rounded border ${result.calibration.enabled ? "text-primary border-primary/40 bg-primary/10" : "text-muted-foreground border-border/50"}`}>
-                {result.calibration.enabled ? t.results.calibrationActive : t.results.calibrationOff}
-              </span>
-            </div>
-            <p className="text-[11px] text-muted-foreground font-mono leading-relaxed mt-2">
-              {t.results.calibrationDescription}
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {[
-              { label: t.results.homeWin, raw: result.rawOneXTwo.home, calibrated: result.calibratedOneXTwo.home, color: "text-primary" },
-              { label: t.results.draw, raw: result.rawOneXTwo.draw, calibrated: result.calibratedOneXTwo.draw, color: "text-yellow-400" },
-              { label: t.results.awayWin, raw: result.rawOneXTwo.away, calibrated: result.calibratedOneXTwo.away, color: "text-red-400" },
-            ].map((row) => (
-              <div key={row.label} className="grid grid-cols-[1fr_auto_auto] items-center gap-4 border-b border-border/20 pb-2 last:border-0 last:pb-0">
-                <span className="font-mono text-xs text-muted-foreground">{row.label}</span>
-                <div className="text-right">
-                  <div className="text-[9px] font-mono text-muted-foreground uppercase">{t.results.original}</div>
-                  <div className="font-mono text-sm text-foreground/70">{(row.raw * 100).toFixed(1)}%</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-[9px] font-mono text-muted-foreground uppercase">{t.results.calibrated}</div>
-                  <div className={`font-mono text-sm font-bold ${row.color}`}>{((result.calibration.enabled ? row.calibrated : row.raw) * 100).toFixed(1)}%</div>
-                </div>
-              </div>
-            ))}
-            <div className="pt-2 border-t border-border/30 flex justify-between text-[10px] font-mono text-muted-foreground">
-              <span>{t.results.temperature}</span>
-              <span className="text-foreground/80">{result.calibration.temperature.toFixed(2)}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card/50 border-border/50 glow-border">
           <CardHeader><CardTitle className="tracking-widest text-sm">{t.results.statsTitle}</CardTitle></CardHeader>
           <CardContent className="space-y-5 pt-2">
             <StatRow label={t.results.expectedGoals} home={result.homeTeam.avgGoals.toFixed(2)} combined={result.expectedTotalGoals.toFixed(2)} away={result.awayTeam.avgGoals.toFixed(2)} />
