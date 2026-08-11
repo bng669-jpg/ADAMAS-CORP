@@ -6,6 +6,7 @@ import * as z from "zod";
 import { useRunSimulation, SimulationInput } from "@workspace/api-client-react";
 import { useSimulationStore } from "@/lib/simulation-store";
 import { useLang } from "@/lib/lang";
+import { useToast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -76,6 +77,7 @@ export default function Home() {
   const runSim = useRunSimulation();
   const [isSimulating, setIsSimulating] = useState(false);
   const { t } = useLang();
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -99,6 +101,11 @@ export default function Home() {
       setLocation("/results");
     } catch (error) {
       console.error(error);
+      toast({
+        title: t.home.simulationError,
+        description: t.home.simulationErrorDesc,
+        variant: "destructive",
+      });
     } finally {
       setIsSimulating(false);
     }
@@ -209,6 +216,8 @@ export default function Home() {
                   key={c}
                   type="button"
                   onClick={() => field.onChange(c)}
+                  aria-pressed={field.value === c}
+                  aria-label={`${t.home.teamForm}: ${label}`}
                   className="flex flex-col items-center gap-1 group"
                 >
                   <span className={`text-[11px] font-mono font-bold tracking-tight transition-opacity ${textColor} ${field.value === c ? 'opacity-100' : 'opacity-40 group-hover:opacity-70'}`}>
@@ -299,9 +308,12 @@ export default function Home() {
                       {(Object.keys(WEATHER_ICONS) as Array<keyof typeof WEATHER_ICONS>).map((w) => {
                         const Icon = WEATHER_ICONS[w];
                         return (
-                          <div
+                          <button
+                            type="button"
                             key={w}
                             onClick={() => field.onChange(w)}
+                            aria-pressed={field.value === w}
+                            aria-label={weatherLabels[w]}
                             className={`flex flex-col items-center justify-center p-3 rounded border cursor-pointer transition-all ${
                               field.value === w
                                 ? 'border-primary bg-primary/10 text-primary shadow-[0_0_10px_rgba(57,255,20,0.2)]'
@@ -310,7 +322,7 @@ export default function Home() {
                           >
                             <Icon className="w-6 h-6 mb-2" />
                             <span className="text-[10px] uppercase font-mono text-center">{weatherLabels[w]}</span>
-                          </div>
+                          </button>
                         );
                       })}
                     </div>

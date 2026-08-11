@@ -236,10 +236,10 @@ function FullResultModal({
                         <Icon className="w-3.5 h-3.5" style={{ color }} />
                         <span className="text-[10px] font-mono font-bold tracking-widest" style={{ color }}>{key}</span>
                       </div>
-                      {bets.map((bet) => {
+                      {bets.map((bet, index) => {
                         const rs = RISK_STYLES[bet.risk] ?? RISK_STYLES.high;
                         return (
-                          <div key={bet.risk} className={`rounded border p-2.5 space-y-1.5 ${rs.border} ${rs.bg}`}>
+                          <div key={`${bet.risk}-${index}`} className={`rounded border p-2.5 space-y-1.5 ${rs.border} ${rs.bg}`}>
                             <div className="flex items-center justify-between gap-2">
                               <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${rs.badge} uppercase tracking-widest`}>
                                 {riskLabel[bet.risk] ?? bet.risk}
@@ -266,7 +266,7 @@ function FullResultModal({
 
 /* ─── Main History Page ──────────────────────────────────────────────────── */
 export default function History() {
-  const { data, isLoading } = useGetBettingHistory({ query: { queryKey: getGetBettingHistoryQueryKey() } });
+  const { data, isLoading, error } = useGetBettingHistory({ query: { queryKey: getGetBettingHistoryQueryKey() } });
   const deleteHistory = useDeleteBettingHistory();
   const queryClient   = useQueryClient();
   const { toast }     = useToast();
@@ -278,7 +278,7 @@ export default function History() {
       await deleteHistory.mutateAsync({ id });
       queryClient.invalidateQueries({ queryKey: getGetBettingHistoryQueryKey() });
     } catch {
-      toast({ title: "Error", description: "Failed to delete entry.", variant: "destructive" });
+      toast({ title: t.history.errorDelete, description: t.history.errorDeleteDesc, variant: "destructive" });
     }
   };
 
@@ -287,6 +287,14 @@ export default function History() {
       <div className="flex flex-col items-center justify-center h-full min-h-[50vh] gap-4">
         <Activity className="w-12 h-12 text-primary animate-spin-slow glow-text" />
         <p className="text-muted-foreground font-mono">{t.history.loading}</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-20 border border-dashed border-destructive/50 rounded-lg bg-destructive/5">
+        <h3 className="text-xl font-bold tracking-widest text-destructive">{t.history.error}</h3>
       </div>
     );
   }

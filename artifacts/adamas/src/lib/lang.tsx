@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, ReactNode } from "react";
+import { readStorage, writeStorage } from "./storage";
 
 export type Lang = "en" | "es";
 
@@ -41,6 +42,8 @@ const translations = {
       submitBtn: "INITIALIZE SIMULATION",
       simulating: "RUNNING 10,000 SIMULATIONS",
       simSubtitle: "CALCULATING BAYESIAN INFERENCE... APPLYING POISSON REGRESSION...",
+      simulationError: "Simulation error",
+      simulationErrorDesc: "The simulation could not be completed. Check your connection and try again.",
       sevLow: "Low",
       sevMedium: "Medium",
       sevHigh: "High",
@@ -60,6 +63,8 @@ const translations = {
       savedDesc: "Simulation result archived.",
       errorSave: "Error",
       errorSaveDesc: "Failed to save result.",
+      errorDelete: "Delete error",
+      errorDeleteDesc: "The history entry could not be deleted.",
       vs: "VS",
       winProb: "WIN PROBABILITY",
       homeWin: "HOME WIN",
@@ -148,6 +153,8 @@ const translations = {
       confidence: "Confidence",
       loading: "Loading history...",
       error: "Failed to load history.",
+      errorDelete: "Delete error",
+      errorDeleteDesc: "The history entry could not be deleted.",
       viewFull: "View Full Result",
       closeDetail: "Close",
       fullResultTitle: "FULL SIMULATION RESULT",
@@ -195,6 +202,8 @@ const translations = {
       submitBtn: "INICIAR SIMULACIÓN",
       simulating: "EJECUTANDO 10,000 SIMULACIONES",
       simSubtitle: "CALCULANDO INFERENCIA BAYESIANA... APLICANDO REGRESIÓN DE POISSON...",
+      simulationError: "Error de simulación",
+      simulationErrorDesc: "No se pudo completar la simulación. Comprueba la conexión e inténtalo de nuevo.",
       sevLow: "Baja",
       sevMedium: "Media",
       sevHigh: "Alta",
@@ -214,6 +223,8 @@ const translations = {
       savedDesc: "Resultado de simulación archivado.",
       errorSave: "Error",
       errorSaveDesc: "No se pudo guardar el resultado.",
+      errorDelete: "Error al eliminar",
+      errorDeleteDesc: "No se pudo eliminar la entrada del historial.",
       vs: "VS",
       winProb: "PROBABILIDAD DE VICTORIA",
       homeWin: "VICTORIA LOCAL",
@@ -302,6 +313,8 @@ const translations = {
       confidence: "Confianza",
       loading: "Cargando historial...",
       error: "Error al cargar el historial.",
+      errorDelete: "Error al eliminar",
+      errorDeleteDesc: "No se pudo eliminar la entrada del historial.",
       viewFull: "Ver Resultado Completo",
       closeDetail: "Cerrar",
       fullResultTitle: "RESULTADO COMPLETO",
@@ -325,12 +338,13 @@ const LangContext = createContext<LangContextType | undefined>(undefined);
 
 export function LangProvider({ children }: { children: ReactNode }) {
   const [lang, setLang] = useState<Lang>(() => {
-    return (localStorage.getItem("adamas_lang") as Lang) || "es";
+    const stored = readStorage("adamas_lang");
+    return stored === "en" || stored === "es" ? stored : "es";
   });
 
   const changeLang = (l: Lang) => {
     setLang(l);
-    localStorage.setItem("adamas_lang", l);
+    writeStorage("adamas_lang", l);
   };
 
   return (

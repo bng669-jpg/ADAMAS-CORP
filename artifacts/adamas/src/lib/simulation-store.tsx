@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import type { SimulationResult, SimulationInput } from "@workspace/api-client-react";
+import { readStorage, removeStorage, writeStorage } from "./storage";
 
 interface SimulationState {
   lastResult: SimulationResult | null;
@@ -16,8 +17,8 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      const storedResult = localStorage.getItem("adamas_last_result");
-      const storedInput = localStorage.getItem("adamas_last_input");
+      const storedResult = readStorage("adamas_last_result");
+      const storedInput = readStorage("adamas_last_input");
       if (storedResult) setLastResult(JSON.parse(storedResult));
       if (storedInput) setLastInput(JSON.parse(storedInput));
     } catch (err) {
@@ -28,15 +29,15 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
   const setSimulationData = (input: SimulationInput, result: SimulationResult) => {
     setLastInput(input);
     setLastResult(result);
-    localStorage.setItem("adamas_last_input", JSON.stringify(input));
-    localStorage.setItem("adamas_last_result", JSON.stringify(result));
+    writeStorage("adamas_last_input", JSON.stringify(input));
+    writeStorage("adamas_last_result", JSON.stringify(result));
   };
 
   const clearSimulationData = () => {
     setLastInput(null);
     setLastResult(null);
-    localStorage.removeItem("adamas_last_input");
-    localStorage.removeItem("adamas_last_result");
+    removeStorage("adamas_last_input");
+    removeStorage("adamas_last_result");
   };
 
   return (

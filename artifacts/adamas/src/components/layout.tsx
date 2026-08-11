@@ -32,18 +32,25 @@ export function Layout({ children }: { children: React.ReactNode }) {
             onClick={() => setLang(lang === "en" ? "es" : "en")}
             className="flex items-center gap-1 px-2 py-1 border border-primary/40 rounded text-xs font-mono tracking-widest text-primary hover:bg-primary/10 hover:border-primary transition-all ml-2 flex-shrink-0"
             title={lang === "en" ? "Cambiar a Español" : "Switch to English"}
+            aria-label={lang === "en" ? "Cambiar a Español" : "Switch to English"}
           >
             {lang === "en" ? "ES" : "EN"}
           </button>
         </div>
 
-        <nav className="flex-1 p-4 flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-visible">
+        <nav aria-label={lang === "en" ? "Main navigation" : "Navegación principal"} className="flex-1 p-4 flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-visible">
           {navItems.map((item) => {
             const isActive = location === item.href;
             const Icon = item.icon;
 
             return (
-              <Link key={item.href} href={item.href} className="flex-shrink-0">
+              <Link
+                key={item.href}
+                href={item.href}
+                className="flex-shrink-0"
+                aria-label={item.label}
+                title={item.label}
+              >
                 <div
                   className={`flex items-center gap-3 px-4 py-3 border transition-all duration-200 cursor-pointer text-sm tracking-widest font-medium ${
                     isActive

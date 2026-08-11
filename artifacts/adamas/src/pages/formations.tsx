@@ -58,7 +58,6 @@ export default function Formations() {
           <Card
             key={f.id}
             className="bg-card/50 border-border/50 hover:border-primary/60 transition-all glow-border flex flex-col cursor-pointer group hover:bg-card/80"
-            onClick={() => setSelected(f as Formation)}
           >
             <CardHeader className="pb-2">
               <div className="flex justify-between items-center">
@@ -98,6 +97,7 @@ export default function Formations() {
                 variant="ghost"
                 size="sm"
                 className="mt-3 w-full text-primary/70 hover:text-primary hover:bg-primary/10 text-xs font-mono group-hover:opacity-100 opacity-60 transition-all"
+                onClick={() => setSelected(f as Formation)}
               >
                 {t.formations.viewDetails} <ChevronRight className="w-3 h-3 ml-1" />
               </Button>

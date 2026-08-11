@@ -1,1 +1,2 @@
 - [ADAMAS calibration](adamas-calibration.md) — 1X2 calibration is internal and always active at the fixed 1.30 temperature; Monte Carlo and scoreline ranking remain unchanged.
+- [ADAMAS platform scope](adamas-platform-scope.md) — ADAMAS is a responsive web app; browser storage is guarded, but per-user history requires an explicit auth design.

@@ -379,10 +379,10 @@ export default function Results() {
                   </div>
                 </CardHeader>
                 <CardContent className="px-4 pb-4 space-y-3">
-                  {bets.map((bet) => {
+                  {bets.map((bet, index) => {
                     const rs = riskStyles[bet.risk] ?? riskStyles.high;
                     return (
-                      <div key={bet.risk} className={`rounded-md border p-3 space-y-2 ${rs.border} ${rs.bg}`}>
+                      <div key={`${bet.risk}-${index}`} className={`rounded-md border p-3 space-y-2 ${rs.border} ${rs.bg}`}>
                         <div className="flex items-center justify-between gap-2">
                           <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border ${rs.badge} tracking-widest uppercase`}>
                             {rs.label} {t.results.risk}
