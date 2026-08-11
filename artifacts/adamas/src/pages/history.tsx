@@ -169,14 +169,14 @@ function FullResultModal({
               </section>
             )}
 
-            {/* ── 4. TOP 10 SCORELINES ─────────────────────────────────── */}
+            {/* ── 4. TOP 6 SCORELINES ──────────────────────────────────── */}
             {result.topScorelines && result.topScorelines.length > 0 && (
               <section className="border-t border-border/30 pt-5">
                 <h3 className="text-xs font-mono tracking-widest text-muted-foreground mb-3">{t.results.probableScorelines}</h3>
                 <div className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
-                      data={result.topScorelines.slice(0, 10).map(s => ({ name: `${s.home}-${s.away}`, prob: parseFloat((s.probability * 100).toFixed(1)) }))}
+                      data={result.topScorelines.slice(0, 6).map(s => ({ name: `${s.home}-${s.away}`, prob: parseFloat((s.probability * 100).toFixed(1)) }))}
                       layout="vertical" margin={{ top: 0, right: 32, left: 36, bottom: 0 }}
                     >
                       <XAxis type="number" hide />

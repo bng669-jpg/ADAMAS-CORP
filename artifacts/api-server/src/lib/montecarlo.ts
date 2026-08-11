@@ -641,7 +641,7 @@ export function runMonteCarlo(input: SimulationInput): SimulationResult {
   const rawTopScorelines = allScorelines
     .slice()
     .sort((a, b) => b.probability - a.probability)
-    .slice(0, 10);
+    .slice(0, 6);
   const topScorelineKeys = new Set(
     rawTopScorelines.map((scoreline) => `${scoreline.home}-${scoreline.away}`),
   );

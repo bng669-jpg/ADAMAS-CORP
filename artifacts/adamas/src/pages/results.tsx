@@ -61,7 +61,7 @@ export default function Results() {
     { name: t.results.awayWin, value: parseFloat((result.awayTeam.winProbability * 100).toFixed(1)), color: "hsl(0, 100%, 55%)" },
   ];
 
-  const scorelinesData = result.topScorelines.slice(0, 10).map(s => ({
+  const scorelinesData = result.topScorelines.slice(0, 6).map(s => ({
     name: `${s.home}-${s.away}`,
     prob: parseFloat((s.probability * 100).toFixed(1)),
   }));
